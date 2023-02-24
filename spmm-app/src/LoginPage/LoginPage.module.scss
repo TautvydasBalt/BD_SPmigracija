@@ -1,0 +1,19 @@
+.loginForm {
+    display: flex;
+    align-items: center;
+    height: 600px;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.loginForm .textField {
+    width: 300px;
+}
+
+.loginForm .buttons {
+    width: 300px;
+    padding-top: 20px;
+    display: flex;
+    column-gap: 20px;
+    justify-content: flex-end;
+}
