@@ -1,6 +1,7 @@
 import { DefaultButton, PrimaryButton, TextField } from '@fluentui/react';
 import React from 'react';
-import strings from '../loc/strings';
+import { Link } from 'react-router-dom';
+import strings from '../../loc/strings';
 import styles from './LoginPage.module.scss';
 
 class LoginPage extends React.Component {
@@ -14,7 +15,9 @@ class LoginPage extends React.Component {
           type="password"
         />
         <div className={styles.buttons}>
-          <DefaultButton text={strings.Register} />
+          <Link to="/register">
+            <DefaultButton text={strings.Register} />
+          </Link>
           <PrimaryButton text={strings.Login} />
         </div>
       </div>
