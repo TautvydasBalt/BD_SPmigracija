@@ -18,10 +18,15 @@ class RegisterPage extends React.Component {
           type="password"
         />
         <div className={styles.buttons}>
-          <PrimaryButton text={strings.Register} />
+          <PrimaryButton text={strings.Register} onClick={this.registerUser}/>
         </div>
       </div>
     );
+  }
+
+  private registerUser() {
+    //todo: API to create user
+    window.open(window.location.origin, "self");
   }
 }
 

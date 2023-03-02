@@ -1,6 +1,5 @@
 import { DefaultButton, PrimaryButton, TextField } from '@fluentui/react';
 import React from 'react';
-import { Link } from 'react-router-dom';
 import strings from '../../loc/strings';
 import styles from './LoginPage.module.scss';
 
@@ -15,13 +14,16 @@ class LoginPage extends React.Component {
           type="password"
         />
         <div className={styles.buttons}>
-          <Link to="/register">
-            <DefaultButton text={strings.Register} />
-          </Link>
-          <PrimaryButton text={strings.Login} />
+          <DefaultButton text={strings.Register} href={window.location.origin + "/register"} />
+          <PrimaryButton text={strings.Login} onClick={this.loginClick}/>
         </div>
       </div>
     );
+  }
+
+  private loginClick() {
+    //todo: API to check credentials
+    window.open(window.location.origin+"/migrationRequests", "self");
   }
 }
 
