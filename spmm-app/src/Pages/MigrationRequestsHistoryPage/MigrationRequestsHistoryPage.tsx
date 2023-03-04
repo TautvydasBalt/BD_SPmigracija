@@ -1,17 +1,20 @@
 import { DetailsList, IColumn } from '@fluentui/react';
 import React from 'react';
+import Navbar from '../../components/NavBar/NavBar';
 import styles from './MigrationRequestsHistoryPage.module.scss';
 
 class MigrationRequestsHistoryPage extends React.Component {
   render() {
     return (
-      <div className={styles.container}>
-        SPMigration
-        <DetailsList 
-        items={mock_items}
-        columns={columns}
-        />
-
+      <div>
+        <Navbar />
+        <div className={styles.container}>
+          SPMigration
+          <DetailsList
+            items={mock_items}
+            columns={columns}
+          />
+        </div>
       </div>
     );
   }
@@ -29,8 +32,8 @@ const columns: IColumn[] = [
 ]
 
 const mock_items = [
-  { key: 0, assingedTo: "Worker 1", source: "URL", destination: "URL", status: "Active"},
-  { key: 1, assingedTo: "Worker 2", source: "URL", destination: "URL", status: "Aproved"},
+  { key: 0, assingedTo: "Worker 1", source: "URL", destination: "URL", status: "Active" },
+  { key: 1, assingedTo: "Worker 2", source: "URL", destination: "URL", status: "Aproved" },
 ]
 
 
