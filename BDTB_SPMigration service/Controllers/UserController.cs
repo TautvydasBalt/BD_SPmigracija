@@ -1,47 +1,114 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System;
+using MySql.Data.MySqlClient;
+using BDTB_SPMigration.Models;
 using PnP.Framework;
 using System.Security;
 
-namespace BDTB_SPMigration.Controllers
+[ApiController]
+[Route("[controller]")]
+public class UserController : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class UserController : ControllerBase
+    // Database connection string
+    private readonly string connectionString = "server=localhost;port=3306;user=root;database=bdtb_spmigration";
+
+    [HttpGet("login")]
+    public bool LoginUser(string userName, string password)
     {
-        private readonly ILogger<UserController> _logger;
-        public UserController(ILogger<UserController> logger)
+        using MySqlConnection connection = new MySqlConnection(connectionString);
+        try
         {
-            _logger = logger;
-        }
+            connection.Open();
+            string query = "SELECT * FROM user WHERE username=@username AND password=@password";
 
-        [HttpGet]
-        public User Get(string userLogin, string userPassword)
-        {
-            string siteUrl = "https://tautbdev.sharepoint.com/sites/devsite";
-            SecureString passw = new SecureString();
-            foreach (char c in userPassword.ToCharArray())
+            MySqlCommand command = new MySqlCommand(query, connection);
+            command.Parameters.AddWithValue("@username", userName);
+            command.Parameters.AddWithValue("@password", password);
+
+            MySqlDataReader reader = command.ExecuteReader();
+
+            if (reader.HasRows)
             {
-                passw.AppendChar(c);
+                User user = new User();
+                reader.Read();
+                user.ID = reader.GetInt32(0);
+                user.UserName = reader.GetString(1);
+                user.Password = reader.GetString(2);
+                user.Email = reader.GetString(3);
+                reader.Close();
+                return true;
             }
-            AuthenticationManager auth = new AuthenticationManager(userLogin, passw);
+            else
+            {
+                reader.Close();
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return false;
+        }
+    }
 
-            using (var ctx = auth.GetContext(siteUrl)) {
 
-                ctx.Load(ctx.Web);
-                ctx.ExecuteQuery();
-                ctx.Load(ctx.Web.CurrentUser);
-                ctx.ExecuteQuery();
-                return new User
-                {
-                    SiteCollectionName = ctx.Web.Title,
-                    CurrentDate = DateTime.Today,
-                    DisplayName = ctx.Web.CurrentUser.Title,
-                    Email = ctx.Web.CurrentUser.Email,
-                    LoginName = ctx.Web.CurrentUser.LoginName
-                };
-            };
+    [HttpPost("register")]
+    public bool RegisterUser(string userName, string password, string email)
+    {
+        using MySqlConnection connection = new MySqlConnection(connectionString);
+        try
+        {
+            connection.Open();
+            string query = "INSERT INTO user (username, password, email) VALUES (@username, @password, @email)";
+
+            MySqlCommand command = new MySqlCommand(query, connection);
+            command.Parameters.AddWithValue("@username", userName);
+            command.Parameters.AddWithValue("@password", password);
+            command.Parameters.AddWithValue("@email", email);
+
+            int rowsAffected = command.ExecuteNonQuery();
+
+            if (rowsAffected > 0) return true;
+            else return false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return false;
+        }
+    }
+
+    [HttpGet("viewuser")]
+    public User ViewUser(int id)
+    {
+        using MySqlConnection connection = new MySqlConnection(connectionString);
+        try
+        {
+            connection.Open();
+            string query = "SELECT * FROM user WHERE id=@id";
+
+            MySqlCommand command = new MySqlCommand(query, connection);
+            command.Parameters.AddWithValue("@id", id);
+            MySqlDataReader reader = command.ExecuteReader();
+
+            if (reader.HasRows)
+            {
+                User user = new User();
+                reader.Read();
+                user.ID = reader.GetInt32(0);
+                user.UserName = reader.GetString(1);
+                user.Password = reader.GetString(2);
+                user.Email = reader.GetString(3);
+                reader.Close();
+                return user;
+            }
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return null;
         }
     }
 }
