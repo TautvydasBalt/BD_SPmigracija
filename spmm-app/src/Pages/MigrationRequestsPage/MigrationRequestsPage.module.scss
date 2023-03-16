@@ -1,7 +1,15 @@
 .container {
     display: flex;
     align-items: center;
-    height: 50%;
     flex-direction: column;
     justify-content: center;
+}
+
+.card{
+    background-color: #DEDEDE;
+    border-radius: 5px;
+    margin: 20px 0;
+    min-width: 600px;
+    max-width: 100%;
+    min-height: 200px;
 }

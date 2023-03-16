@@ -1,7 +1,7 @@
-$main-bg: #dfe6e9;
-$purple: #5D9CEC;
-$deep-purple: darken($purple, 10%);
-$light-green: #55efc4;
+$main-bg: #FFFFFF;
+$brown: #5C2A2A;
+$deep-brown: darken($brown, 10%);
+$active-brown: #A76F6F;
 
 // Basic Styling
 body {
@@ -23,8 +23,8 @@ ul {
 			-o-transition: background-color .5s;
 			transition: background-color .5s, color .5s;
 			&:hover {
-				background-color: $light-green;
-				color: $deep-purple;
+				background-color: $active-brown;
+				color: $deep-brown;
 			}
 			.contact {
 				border: 1px solid white;
@@ -37,7 +37,7 @@ ul {
 	display: -webkit-box;
 	display: -ms-flexbox;
 	display: flex;
-	background: linear-gradient(to bottom right, $purple, #967ADC);
+	background: linear-gradient(to bottom right, $brown, #000000);
 	color: white;
 	.slam-left {
 		margin-right: auto;

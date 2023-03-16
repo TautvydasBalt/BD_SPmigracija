@@ -1,4 +1,4 @@
-import { DetailsList, IColumn } from '@fluentui/react';
+import { GroupedList } from '@fluentui/react';
 import React from 'react';
 import Navbar from '../../components/NavBar/NavBar';
 import styles from './MigrationRequestsPage.module.scss';
@@ -10,25 +10,23 @@ class MigrationRequestsPage extends React.Component {
         <Navbar />
         <div className={styles.container}>
           SPMigration
-          <DetailsList
-            items={mock_items}
-            columns={columns}
-          /></div>
+          <GroupedList onRenderCell={this.onRenderCell} items={mock_items} />
+        </div>
       </div>
     );
   }
 
-  // private toRegisterPage() {
-  //   window.open(window.location.origin,"/register");
-  // }
-}
+  private onRenderCell = (nestingDepth?: number, item?: any, itemIndex?: number): React.ReactNode => {
+    return item ? (
+      <div className={styles.card} data-selection-index={itemIndex}>
+          {item.assingedTo}
 
-const columns: IColumn[] = [
-  { key: "assingedTo", fieldName: "assingedTo", name: "Assinged to", minWidth: 50, },
-  { key: "source", fieldName: "source", name: "Source", minWidth: 50, },
-  { key: "destination", fieldName: "destination", name: "Destination", minWidth: 50, },
-  { key: "status", fieldName: "status", name: "Status", minWidth: 50, },
-]
+          {item.source}
+      </div>
+    ) : null;
+  };
+
+}
 
 const mock_items = [
   { key: 0, assingedTo: "Worker 1", source: "URL", destination: "URL", status: "Active" },
