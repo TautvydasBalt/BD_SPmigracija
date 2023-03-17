@@ -5,11 +5,36 @@
     justify-content: center;
 }
 
-.card{
+.itemCell {
     background-color: #DEDEDE;
     border-radius: 5px;
     margin: 20px 0;
     min-width: 600px;
     max-width: 100%;
     min-height: 200px;
+    padding: 10;
+    box-sizing: border-box;
+    border-bottom: 1px solid gray;
+    display: flex;
+}
+
+.itemContent {
+    margin-left: 10;
+    overflow: hidden;
+    flex-grow: 1;
+}
+
+.itemName {
+    font-size: 20px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 10px;
+}
+
+.itemData {
+    font-size: 14px;
+    white-space: nowrap;
+    padding: 0px 0px 10px 16px;
+    text-overflow: ellipsis;
 }
