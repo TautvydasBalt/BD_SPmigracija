@@ -4,6 +4,7 @@ import LoginPage from './Pages/LoginPage/LoginPage';
 import MigrationRequestsHistoryPage from './Pages/MigrationRequestsHistoryPage/MigrationRequestsHistoryPage';
 import MigrationRequestsPage from './Pages/MigrationRequestsPage/MigrationRequestsPage';
 import RegisterPage from './Pages/RegisterPage/RegisterPage';
+import ViewRequestPage from './Pages/ViewRequestPage/ViewRequestPage';
 
 
 const Main = () => {
@@ -13,6 +14,8 @@ const Main = () => {
       <Route path='/register' element={<RegisterPage/>}></Route>
       <Route path='/migrationRequests' element={<MigrationRequestsPage/>}></Route>
       <Route path='/migrationRequestsHistory' element={<MigrationRequestsHistoryPage/>}></Route>
+      <Route path='/viewRequest/:id' element={<ViewRequestPage/>}></Route>
+
     </Routes>
   );
 }

@@ -27,7 +27,7 @@ class MigrationRequestsPage extends React.Component<{}, { migrationRequests: any
       <div>
         <Navbar />
         <div className={styles.container}>
-          SPMigration
+          <div className={styles.pageTitle}> Migration Reqests </div>
           <List onRenderCell={this.onRenderCell} items={migrationRequests} />
         </div>
       </div>
@@ -46,12 +46,16 @@ class MigrationRequestsPage extends React.Component<{}, { migrationRequests: any
         <div className={styles.sideBar}>
           <div className={styles.status}>{"Status: " + showData(item.status)} </div>
           <div className={styles.buttons}>
-            <PrimaryButton className={styles.button} text={strings.Open} />
+            <PrimaryButton className={styles.button} text={strings.Open} onClick={() => this.openRequest(item.id)} />
           </div>
         </div>
       </div>
     ) : null;
   };
+
+  private async openRequest(id: string) {
+    window.open(window.location.origin + "/viewRequest/" + id, "_self");
+  }
 
   private async getMigrationRequests() {
     const response = await axios.get(`/allRequests`);
