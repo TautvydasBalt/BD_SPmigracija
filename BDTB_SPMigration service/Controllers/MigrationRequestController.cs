@@ -18,7 +18,7 @@ namespace BDTB_SPMigration.Controllers
             List<MigrationRequest> requests = new List<MigrationRequest>();
             using MySqlConnection connection = new MySqlConnection(connectionString);
             connection.Open();
-            string query = "SELECT ID, request_name, source_url, destination_url FROM migration_request";
+            string query = "SELECT ID, request_name, source_url, destination_url, status FROM migration_request";
             using MySqlCommand command = new MySqlCommand(query, connection);
             using MySqlDataReader reader = command.ExecuteReader();
             while (reader.Read())
@@ -28,7 +28,8 @@ namespace BDTB_SPMigration.Controllers
                     ID = reader.GetInt32(0),
                     RequestName = reader.GetString(1),
                     SourceURL = reader.GetString(2),
-                    DestinationURL = reader.GetString(3)
+                    DestinationURL = reader.GetString(3),
+                    Status = reader.GetString(4),
                 });
             }
             return requests;
@@ -55,6 +56,7 @@ namespace BDTB_SPMigration.Controllers
                     migrationRequest.RequestName = reader.GetString(1);
                     migrationRequest.SourceURL = reader.GetString(2);
                     migrationRequest.DestinationURL = reader.GetString(3);
+                    migrationRequest.Status = reader.GetString(4);
                     reader.Close();
                     return migrationRequest;
                 }
@@ -74,12 +76,13 @@ namespace BDTB_SPMigration.Controllers
             try
             {
                 connection.Open();
-                string query = "INSERT INTO migration_request (request_name, source_url, destination_url) VALUES (@request_name, @source_url, @destination_url)";
+                string query = "INSERT INTO migration_request (request_name, source_url, destination_url, status) VALUES (@request_name, @source_url, @destination_url, @status)";
 
                 MySqlCommand command = new MySqlCommand(query, connection);
                 command.Parameters.AddWithValue("@request_name", RequestName);
                 command.Parameters.AddWithValue("@source_url", SourceURL);
                 command.Parameters.AddWithValue("@destination_url", DestinationURL);
+                command.Parameters.AddWithValue("@status", "New");
 
                 int rowsAffected = command.ExecuteNonQuery();
 

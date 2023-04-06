@@ -6,5 +6,6 @@
         public string RequestName { get; set; }
         public string SourceURL { get; set; }
         public string DestinationURL { get; set; }
+        public string Status { get; set; }
     }
 }
