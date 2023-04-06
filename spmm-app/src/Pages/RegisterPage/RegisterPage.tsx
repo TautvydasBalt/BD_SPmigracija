@@ -50,16 +50,14 @@ class RegisterPage extends React.Component<{}, {}> {
   };
 
 
-  //TODO: fix register
   private async registerUser() {
     try {
-      const response = await axios.get(`/User/register?userName=${this.userName}&password=${this.password}&email=${this.email}`);
+      const response = await axios.post(`/User/register?userName=${this.userName}&password=${this.password}&email=${this.email}`);
       const data = response.data;
       if (data) window.open(window.location.origin + "/", "_self");
     } catch (error) {
       console.log(error);
     }
-    window.open(window.location.origin, "_self");
   }
 }
 

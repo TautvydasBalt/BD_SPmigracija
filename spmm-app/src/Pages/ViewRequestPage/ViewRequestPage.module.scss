@@ -10,10 +10,10 @@
     background-color: #DEDEDE;
     border-radius: 5px;
     margin: 20px 0;
-    min-width: 1000px;
-    max-width: 100%;
+    //min-width: 1000px;
+    width: 95%;
     min-height: 200px;
-    padding: 10;
+    padding: 20px;
     box-sizing: border-box;
     border-bottom: 1px solid gray;
     display: flex;
@@ -25,55 +25,44 @@
     flex-grow: 1;
 }
 
-.itemName {
-    font-size: 20px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding: 10px;
-}
-
 .itemData {
-    font-size: 14px;
+    font-size: 18px;
     white-space: nowrap;
     padding: 0px 0px 10px 16px;
     text-overflow: ellipsis;
 }
 
-.sideBar {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    width: 200px;
-}
-
 .button {
     width: 20px;
-    margin: 10px 16px 10px 16px;
+    margin: 10px 0px 10px 16px;
     background-color: #5C2A2A;
 
     &:hover {
         background-color: #A76F6F;
     }
+
+    &:disabled,
+    &[disabled] {
+        border: 1px solid #999999;
+        background-color: #cccccc;
+        color: #666666;
+    }
+
 }
 
 .buttons {
     display: flex;
     justify-content: flex-start;
     flex-direction: row-reverse;
+    width: 95%;
 }
 
-.status {
-    width: unset;
-    padding: 16px 0px 0px 16px;
-}
+// @media only screen and (max-width: 1080px) {
+//     .itemCell {
+//         min-width: 600px;
+//     }
+// }
 
-@media only screen and (max-width: 1080px) {
-    .itemCell {
-        min-width: 600px;
-    }
-}
-
-.pageTitle{
+.pageTitle {
     font-size: 28px;
 }

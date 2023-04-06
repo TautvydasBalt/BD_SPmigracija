@@ -16,6 +16,8 @@ namespace BDTB_SPMigration
 
         public IConfiguration Configuration { get; }
 
+        readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -23,6 +25,18 @@ namespace BDTB_SPMigration
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "BDTB_SPMigration", Version = "v1" });
+            });
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy(name: MyAllowSpecificOrigins,
+                              builder =>
+                              {
+                                  builder.AllowAnyOrigin()
+                                         .AllowAnyHeader()
+                                         .AllowAnyMethod();
+                              });
+
             });
         }
 
@@ -37,25 +51,32 @@ namespace BDTB_SPMigration
             }
             
             app.UseHttpsRedirection();
-            app.UseStaticFiles();
+            //app.UseStaticFiles();
             app.UseRouting();
 
-            app.UseAuthorization();
+            app.UseCors(MyAllowSpecificOrigins);
 
-            app.Use(async (context, next) =>
-            {
-                context.Response.Headers.Add("Access-Control-Allow-Origin","*");
-                await next();
-            });
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
+            app.UseAuthorization();
+            app.UseAuthentication();
+            //app.Use(async (context, next) =>
+            //{
+            //    context.Response.Headers.Add("Access-Control-Allow-Origin","*");
+            //    context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, OPTIONS, PUT, POST, DELETE");
+            //    context.Response.Headers.Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept");
+            //    context.Response.Headers.Add("Access-Control-Allow-Credentials", "true");
+            //    await next();
+            //});
+            //app.UseEndpoints(endpoints =>
+            //{
+            //    endpoints.MapControllers();
+            //});
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
+                //endpoints.MapControllers()
+                //     .RequireCors(MyAllowSpecificOrigins);
             });
         }
     }
