@@ -1,7 +1,22 @@
+import axios from "axios";
+import { User } from "./globalInterfaces";
+
+axios.defaults.baseURL = "https://localhost:5001/";
 
 
 export function showData(data: any) {
     return data ? data : '-';
+}
+
+export function showAssignedUsersNames(data: User[]) {
+    let names: string[] = [];
+    if (data) {
+        data.forEach((user: User) => {
+            names.push(user.userName);
+        });
+        return names.join(', ');
+    }
+    else return "-";
 }
 
 export function getRequestIdFromURL(url: string) {

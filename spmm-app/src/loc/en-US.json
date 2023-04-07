@@ -8,6 +8,11 @@
     "Edit": "Edit",
     "Delete": "Delete",
     "Approve": "Approve",
-    "Migrate": "Migrate"
+    "Migrate": "Migrate",
+    "MirgrationName": "Mirgration Name",
+    "MirgrationSource": "Mirgration Source",
+    "MirgrationDest": "Mirgration Destination",
+    "AssignedTo": "Assigned To",
+    "SelectPages": "Select Pages"
 }
   

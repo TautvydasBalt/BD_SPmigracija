@@ -2,7 +2,7 @@ import { PrimaryButton } from '@fluentui/react';
 import axios from 'axios';
 import React from 'react';
 import Navbar from '../../components/NavBar/NavBar';
-import { getRequestIdFromURL, showData } from '../../global/dataHandler';
+import { getRequestIdFromURL, showAssignedUsersNames, showData } from '../../global/dataHandler';
 import strings from '../../loc/strings';
 import styles from './ViewRequestPage.module.scss';
 
@@ -31,7 +31,7 @@ class ViewRequestPage extends React.Component<{}, { ViewRequest: any }> {
           <div className={styles.itemCell} data-is-focusable={true}>
             <div className={styles.itemContent}>
               <div className={styles.itemData}>{"Status: " + showData(ViewRequest.status)} </div>
-              <div className={styles.itemData}>{"Assigned To: " + showData(ViewRequest.assignedTo)}</div>
+              <div className={styles.itemData}>{"Assigned To: " + showAssignedUsersNames(ViewRequest.assignedUsers)}</div>
               <div className={styles.itemData}>{"Source URL: " + showData(ViewRequest.sourceURL)}</div>
               <div className={styles.itemData}>{"Destination URL: " + showData(ViewRequest.destinationURL)}</div>
               <div className={styles.itemData}>{"Selected Pages: " + showData(ViewRequest.SelectedPages)}</div>
@@ -41,7 +41,7 @@ class ViewRequestPage extends React.Component<{}, { ViewRequest: any }> {
           <div className={styles.buttons}>
             <PrimaryButton className={styles.button} text={strings.Edit} onClick={() => { }} />
             <PrimaryButton className={styles.button} text={strings.Delete} onClick={this.deleteMigrationRequest} />
-            <PrimaryButton className={styles.button} disabled={ViewRequest.status === "Aproved"} text={strings.Approve} onClick={() => { }} />
+            <PrimaryButton className={styles.button} disabled={ViewRequest.status !== "New"} text={strings.Approve} onClick={this.approveMigrationRequest} />
             <PrimaryButton className={styles.button} disabled={ViewRequest.status === "New"} text={strings.Migrate} onClick={() => { }} />
           </div>
         </div>
@@ -58,6 +58,12 @@ class ViewRequestPage extends React.Component<{}, { ViewRequest: any }> {
   private async deleteMigrationRequest() {
     let id = getRequestIdFromURL(window.location.href);
     axios.delete(`/deleteRequest?id=${id}`);
+    window.open(window.location.origin + "/migrationRequests", "_self");
+  }
+
+  private async approveMigrationRequest() {
+    let id = getRequestIdFromURL(window.location.href);
+    axios.put(`/approveRequest?id=${id}`);
     window.open(window.location.origin + "/migrationRequests", "_self");
   }
 

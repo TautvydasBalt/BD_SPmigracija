@@ -4,8 +4,6 @@ import strings from '../../loc/strings';
 import styles from './LoginPage.module.scss';
 import axios from "axios";
 
-axios.defaults.baseURL = "https://localhost:5001/";
-
 class LoginPage extends React.Component<{}, {}> {
   private userName: string;
   private password: string;

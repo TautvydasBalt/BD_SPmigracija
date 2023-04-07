@@ -23,6 +23,7 @@ namespace BDTB_SPMigration.Controllers
             using MySqlDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
+
                 requests.Add(new MigrationRequest
                 {
                     ID = reader.GetInt32(0),
@@ -30,9 +31,32 @@ namespace BDTB_SPMigration.Controllers
                     SourceURL = reader.GetString(2),
                     DestinationURL = reader.GetString(3),
                     Status = reader.GetString(4),
+                    AssignedUsers = getAssignedUsers(reader.GetInt32(0)),
                 });
             }
             return requests;
+        }
+
+        private List<User> getAssignedUsers(int id)
+        {
+            List<User> users = new List<User>();
+            using MySqlConnection connection = new MySqlConnection(connectionString);
+            connection.Open();
+            string query = "SELECT u.id, u.UserName, u.Email FROM assigned_users as au INNER JOIN user as u ON u.id = au.id_user WHERE au.id_request = @id;";
+
+            MySqlCommand command = new MySqlCommand(query, connection);
+            command.Parameters.AddWithValue("@id", id);
+            MySqlDataReader reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                users.Add(new User
+                {
+                    ID = reader.GetInt32(0),
+                    UserName = reader.GetString(1),
+                    Email = reader.GetString(2),
+                });
+            }
+            return users;
         }
 
         [HttpGet("viewRequest")]
@@ -57,6 +81,7 @@ namespace BDTB_SPMigration.Controllers
                     migrationRequest.SourceURL = reader.GetString(2);
                     migrationRequest.DestinationURL = reader.GetString(3);
                     migrationRequest.Status = reader.GetString(4);
+                    migrationRequest.AssignedUsers = getAssignedUsers(reader.GetInt32(0));
                     reader.Close();
                     return migrationRequest;
                 }
@@ -111,6 +136,30 @@ namespace BDTB_SPMigration.Controllers
                 command.Parameters.AddWithValue("@source_url", request.SourceURL);
                 command.Parameters.AddWithValue("@destination_url", request.DestinationURL);
 
+                int rowsAffected = command.ExecuteNonQuery();
+
+                if (rowsAffected > 0) return true;
+                else return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+        }
+
+        [HttpPut("approveRequest")]
+        public bool approveRequest(string id)
+        {
+            using MySqlConnection connection = new MySqlConnection(connectionString);
+            try
+            {
+                connection.Open();
+                string query = "UPDATE migration_request SET status = @status WHERE ID = @id";
+
+                using MySqlCommand command = new MySqlCommand(query, connection);
+                command.Parameters.AddWithValue("@id", id);
+                command.Parameters.AddWithValue("@status", "Approved");
                 int rowsAffected = command.ExecuteNonQuery();
 
                 if (rowsAffected > 0) return true;

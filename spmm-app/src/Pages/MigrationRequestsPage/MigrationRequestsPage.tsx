@@ -2,7 +2,7 @@ import { List, PrimaryButton } from '@fluentui/react';
 import axios from 'axios';
 import React from 'react';
 import Navbar from '../../components/NavBar/NavBar';
-import { showData } from '../../global/dataHandler';
+import { showAssignedUsersNames, showData } from '../../global/dataHandler';
 import strings from '../../loc/strings';
 import styles from './MigrationRequestsPage.module.scss';
 
@@ -39,7 +39,7 @@ class MigrationRequestsPage extends React.Component<{}, { migrationRequests: any
       <div className={styles.itemCell} data-is-focusable={true}>
         <div className={styles.itemContent}>
           <div className={styles.itemName}>{showData(item.requestName)}</div>
-          <div className={styles.itemData}>{"Assigned To: " + showData(item.assignedTo)}</div>
+          <div className={styles.itemData}>{"Assigned To: " + showAssignedUsersNames(item.assignedUsers)}</div>
           <div className={styles.itemData}>{"Source URL: " + showData(item.sourceURL)}</div>
           <div className={styles.itemData}>{"Destination URL: " + showData(item.destinationURL)}</div>
         </div>
