@@ -5,6 +5,7 @@ using MySql.Data.MySqlClient;
 using BDTB_SPMigration.Models;
 using PnP.Framework;
 using System.Security;
+using System.Collections.Generic;
 
 [ApiController]
 [Route("[controller]")]
@@ -110,5 +111,26 @@ public class UserController : ControllerBase
             Console.WriteLine(ex.Message);
             return null;
         }
+    }
+
+    [HttpGet("allUsers")]
+    public List<User> GetAllUsers()
+    {
+        List<User> users = new List<User>();
+        using MySqlConnection connection = new MySqlConnection(connectionString);
+        connection.Open();
+        string query = "SELECT ID, UserName, Email FROM user";
+        using MySqlCommand command = new MySqlCommand(query, connection);
+        using MySqlDataReader reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            users.Add(new User
+            {
+                ID = reader.GetInt32(0),
+                UserName = reader.GetString(1),
+                Email = reader.GetString(2),
+            });
+        }
+        return users;
     }
 }

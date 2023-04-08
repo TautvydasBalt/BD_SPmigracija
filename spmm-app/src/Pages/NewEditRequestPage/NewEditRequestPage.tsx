@@ -1,11 +1,15 @@
-import { PrimaryButton, TextField } from '@fluentui/react';
-import axios from 'axios';
+import { ITag, TextField } from '@fluentui/react';
 import React from 'react';
 import strings from '../../loc/strings';
 import Navbar from '../../components/NavBar/NavBar';
 import styles from './NewEditRequestPage.module.scss';
+import UserPicker from '../../components/UserPicker/UserPicker';
+import axios from 'axios';
+import { User } from '../../global/globalInterfaces';
 
 class NewEditRequestPagePage extends React.Component<{}, {}> {
+    private userTags: ITag[];
+
     private MigrationName: string;
     private MigrationSource: string;
 
@@ -13,9 +17,14 @@ class NewEditRequestPagePage extends React.Component<{}, {}> {
         super(props);
         this.MigrationName = "";
         this.MigrationSource = "";
+        this.userTags = [];
     }
 
-    render() {
+    public componentDidMount(): void {
+        this.getUsers();
+    }
+
+    public render() {
         return (
             <div>
                 <Navbar />
@@ -23,8 +32,7 @@ class NewEditRequestPagePage extends React.Component<{}, {}> {
                 <TextField onChange={this.handleTextFieldChangeMigrationName} label={strings.MirgrationName} />
                 <TextField onChange={this.handleTextFieldChangeMigrationSource} label={strings.MirgrationSource} />
                 <TextField onChange={this.handleTextFieldChangeMigrationSource} label={strings.MirgrationDest} />
-                <div >
-                </div>
+                <UserPicker allTags={this.userTags} fieldTitle={strings.SelectUsers} />
             </div>
         );
     }
@@ -37,6 +45,12 @@ class NewEditRequestPagePage extends React.Component<{}, {}> {
         if (newValue) this.MigrationSource = newValue;
     };
 
+    private async getUsers() {
+        const response = await axios.get(`User/allUsers`);
+        let allUsers: User[] = response.data;
+        let tags: ITag[] = allUsers.map((user: User) => ({ key: user.id, name: user.userName }));
+        this.setState({ userTags: tags });
+    }
 }
 
 export default NewEditRequestPagePage;
