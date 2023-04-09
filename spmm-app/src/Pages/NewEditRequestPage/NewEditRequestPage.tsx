@@ -1,5 +1,5 @@
 import { ITag, TextField } from '@fluentui/react';
-import React from 'react';
+import React, { useState } from 'react';
 import strings from '../../loc/strings';
 import Navbar from '../../components/NavBar/NavBar';
 import styles from './NewEditRequestPage.module.scss';
@@ -7,8 +7,12 @@ import UserPicker from '../../components/UserPicker/UserPicker';
 import axios from 'axios';
 import { User } from '../../global/globalInterfaces';
 
-class NewEditRequestPagePage extends React.Component<{}, {}> {
-    private userTags: ITag[];
+interface NewEditRequestState {
+    userTags: ITag[];
+}
+
+
+class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
 
     private MigrationName: string;
     private MigrationSource: string;
@@ -17,7 +21,9 @@ class NewEditRequestPagePage extends React.Component<{}, {}> {
         super(props);
         this.MigrationName = "";
         this.MigrationSource = "";
-        this.userTags = [];
+        this.state = {
+            userTags: [],
+        }
     }
 
     public componentDidMount(): void {
@@ -29,20 +35,17 @@ class NewEditRequestPagePage extends React.Component<{}, {}> {
             <div>
                 <Navbar />
                 <div className={styles.pageTitle}>Create Request </div>
-                <TextField onChange={this.handleTextFieldChangeMigrationName} label={strings.MirgrationName} />
-                <TextField onChange={this.handleTextFieldChangeMigrationSource} label={strings.MirgrationSource} />
-                <TextField onChange={this.handleTextFieldChangeMigrationSource} label={strings.MirgrationDest} />
-                <UserPicker allTags={this.userTags} fieldTitle={strings.SelectUsers} />
+                <TextField name={"MigrationName"} onChange={this.handleTextFieldChangeMigrationName} label={strings.MirgrationName} />
+                {/* <TextField onChange={this.handleTextFieldChangeMigrationSource} label={strings.MirgrationSource} /> */}
+                <UserPicker allTags={this.state.userTags} fieldTitle={strings.SelectUsers} />
             </div>
         );
     }
 
     private handleTextFieldChangeMigrationName = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
-        if (newValue) this.MigrationName = newValue;
-    };
+        console.log(event.currentTarget.name)
 
-    private handleTextFieldChangeMigrationSource = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
-        if (newValue) this.MigrationSource = newValue;
+        if (newValue) this.MigrationName = newValue;
     };
 
     private async getUsers() {
@@ -53,4 +56,4 @@ class NewEditRequestPagePage extends React.Component<{}, {}> {
     }
 }
 
-export default NewEditRequestPagePage;
+export default NewEditRequestPage;

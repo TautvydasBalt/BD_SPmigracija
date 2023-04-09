@@ -1,6 +1,6 @@
 import React from 'react';
-import styles from './UserPicker.module.scss';
-import { ITag, Label, TagPicker } from '@fluentui/react';
+import { ITag, Label, TagPicker, initializeIcons } from '@fluentui/react';
+initializeIcons();
 
 interface UserPickerProps {
     fieldTitle?: string;
@@ -23,8 +23,9 @@ class UserPicker extends React.Component<UserPickerProps, {}> {
     }
 
     private filterSuggestedTags = (filter: string, selectedItems?: ITag[]): ITag[] => {
+        let tags = this.props.allTags ? this.props.allTags : [];
         return filter
-            ? this.props.allTags.filter(
+            ? tags.filter(
                 tag => tag.name.toLowerCase().indexOf(filter.toLowerCase()) === 0 && !this.listContainsTagList(tag, selectedItems),
             )
             : [];

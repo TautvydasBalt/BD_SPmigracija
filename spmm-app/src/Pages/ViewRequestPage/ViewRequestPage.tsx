@@ -6,7 +6,11 @@ import { getRequestIdFromURL, showAssignedUsersNames, showData } from '../../glo
 import strings from '../../loc/strings';
 import styles from './ViewRequestPage.module.scss';
 
-class ViewRequestPage extends React.Component<{}, { ViewRequest: any }> {
+interface ViewRequestState {
+  ViewRequest: any
+}
+
+class ViewRequestPage extends React.Component<{}, ViewRequestState> {
 
   constructor(props: {}) {
     super(props);

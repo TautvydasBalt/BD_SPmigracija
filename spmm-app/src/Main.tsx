@@ -5,7 +5,7 @@ import MigrationRequestsHistoryPage from './Pages/MigrationRequestsHistoryPage/M
 import MigrationRequestsPage from './Pages/MigrationRequestsPage/MigrationRequestsPage';
 import RegisterPage from './Pages/RegisterPage/RegisterPage';
 import ViewRequestPage from './Pages/ViewRequestPage/ViewRequestPage';
-import NewEditRequestPagePage from './Pages/NewEditRequestPage/NewEditRequestPage';
+import NewEditRequestPage from './Pages/NewEditRequestPage/NewEditRequestPage';
 
 
 const Main = () => {
@@ -16,8 +16,8 @@ const Main = () => {
       <Route path='/migrationRequests' element={<MigrationRequestsPage/>}></Route>
       <Route path='/migrationRequestsHistory' element={<MigrationRequestsHistoryPage/>}></Route>
       <Route path='/viewRequest/:id' element={<ViewRequestPage/>}></Route>
-      <Route path='/createRequest' element={<NewEditRequestPagePage/>}></Route>
-      <Route path='/editRequest/:id' element={<NewEditRequestPagePage/>}></Route>
+      <Route path='/createRequest' element={<NewEditRequestPage/>}></Route>
+      <Route path='/editRequest/:id' element={<NewEditRequestPage/>}></Route>
 
     </Routes>
   );
