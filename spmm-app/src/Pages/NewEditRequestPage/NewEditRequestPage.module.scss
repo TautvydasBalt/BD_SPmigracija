@@ -4,8 +4,49 @@
 
 .Form {
     display: flex;
-    align-items: center;
-    height: 600px;
+    justify-content: space-between;
+}
+
+.leftForm {
+    margin: 20px;
+    width: 45%;
+}
+
+.rightForm {
+    margin: 20px;
+    width: 45%;
+}
+
+.box {
+    border: 1px solid black;
+    display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
+    height: 300px;
+}
+
+.button {
+    width: 20px;
+    margin: 10px 0px 10px 16px;
+    background-color: #5C2A2A;
+
+    &:hover {
+        background-color: #A76F6F;
+    }
+
+    &:disabled,
+    &[disabled] {
+        border: 1px solid #999999;
+        background-color: #cccccc;
+        color: #666666;
+    }
+
+}
+
+.buttons {
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: row-reverse;
+    width: 95%;
 }

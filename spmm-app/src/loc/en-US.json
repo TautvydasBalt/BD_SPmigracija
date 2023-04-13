@@ -9,6 +9,7 @@
     "Delete": "Delete",
     "Approve": "Approve",
     "Migrate": "Migrate",
+    "Create": "Create",
     "MirgrationName": "Mirgration Name",
     "MirgrationSource": "Mirgration Source",
     "MirgrationDest": "Mirgration Destination",
