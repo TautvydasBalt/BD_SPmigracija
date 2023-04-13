@@ -1,3 +1,8 @@
+.pageContainer{
+    padding-top: 32px;
+    padding-left: 64px;
+}
+
 .pageTitle {
     font-size: 28px;
 }
@@ -28,7 +33,7 @@
 
 .button {
     width: 20px;
-    margin: 10px 0px 10px 16px;
+    margin: 10px 20px 10px 16px;
     background-color: #5C2A2A;
 
     &:hover {
@@ -48,5 +53,5 @@
     display: flex;
     justify-content: flex-start;
     flex-direction: row-reverse;
-    width: 95%;
+    width: 100%;
 }

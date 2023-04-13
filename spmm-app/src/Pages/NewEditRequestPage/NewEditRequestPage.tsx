@@ -12,7 +12,7 @@ interface NewEditRequestState {
     selectedTags: ITag[];
 
     [key: string]: NewEditRequestState[keyof NewEditRequestState];
-    MigrationName: string;
+    RequestName: string;
     MigrationSource: string;
     MigrationDestination: string;
 
@@ -25,7 +25,7 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
         this.state = {
             userTags: [],
             selectedTags: [],
-            MigrationName: "",
+            RequestName: "",
             MigrationSource: "",
             MigrationDestination: "",
         }
@@ -39,21 +39,23 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
         return (
             <div>
                 <Navbar />
-                <div className={styles.pageTitle}>Create Request </div>
-                <div className={styles.Form}>
-                    <div className={styles.leftForm}>
-                        <TextField onChange={this.handleChange("MigrationName")} label={strings.MirgrationName} value={this.state["MigrationName"]} />
-                        <TextField onChange={this.handleChange("MigrationSource")} label={strings.MirgrationSource} value={this.state["MigrationSource"]} />
-                        <TextField onChange={this.handleChange("MigrationDestination")} label={strings.MirgrationDest} value={this.state["MigrationDestination"]} />
-                        <UserPicker allTags={this.state.userTags} fieldTitle={strings.SelectUsers} setSelectedTags={this.setSelectedTags.bind(this)} />
+                <div className={styles.pageContainer}>
+                    <div className={styles.pageTitle}>Create Request </div>
+                    <div className={styles.Form}>
+                        <div className={styles.leftForm}>
+                            <TextField onChange={this.handleChange("RequestName")} label={strings.MirgrationName} value={this.state["RequestName"]} />
+                            <TextField onChange={this.handleChange("MigrationSource")} label={strings.MirgrationSource} value={this.state["MigrationSource"]} />
+                            <TextField onChange={this.handleChange("MigrationDestination")} label={strings.MirgrationDest} value={this.state["MigrationDestination"]} />
+                            <UserPicker allTags={this.state.userTags} fieldTitle={strings.SelectUsers} setSelectedTags={this.setSelectedTags.bind(this)} />
+                        </div>
+                        <div className={styles.rightForm}>
+                            <Label>Select Pages</Label>
+                            <div className={styles.box}>TODO BOX</div>
+                        </div>
                     </div>
-                    <div className={styles.rightForm}>
-                        <Label>Select Pages</Label>
-                        <div className={styles.box}>TODO BOX</div>
+                    <div className={styles.buttons}>
+                        <PrimaryButton className={styles.button} text={strings.Create} onClick={() => this.onSubmit()} />
                     </div>
-                </div>
-                <div className={styles.buttons}>
-                    <PrimaryButton className={styles.button} text={strings.Create} onClick={() => this.onSubmit()} />
                 </div>
             </div>
         );
@@ -76,9 +78,24 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
         this.setState({ userTags: tags });
     }
 
-    private onSubmit(id?: number) {
-        console.log(this.state);
+    private async onSubmit(id?: number) {
+        try {
+            const response = await axios.post(`/createRequest?RequestName=${this.state.RequestName}&SourceURL=${this.state.MigrationSource}
+            &DestinationURL=${this.state.MigrationDestination}${this.setAssignedUserIDs(this.state.selectedTags)}`);
+            const data = response.data;
+            if (data) window.open(window.location.origin + "/migrationRequests", "_self");
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
+    private setAssignedUserIDs(tags: ITag[]): string {
+        let result: string[] = [];
+        tags.forEach(tag => {
+            let id: any = tag.key;
+            result.push(id);
+        });
+        return result ? "&userIDs=" + result.join("&userIDs=") : "";
     }
 }
 
