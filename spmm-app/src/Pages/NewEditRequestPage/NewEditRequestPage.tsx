@@ -6,6 +6,7 @@ import styles from './NewEditRequestPage.module.scss';
 import UserPicker from '../../components/UserPicker/UserPicker';
 import axios from 'axios';
 import { User } from '../../global/globalInterfaces';
+import { getRequestIdFromURL } from '../../global/dataHandler';
 
 interface NewEditRequestState {
     userTags: ITag[];
@@ -20,8 +21,10 @@ interface NewEditRequestState {
 
 
 class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
+    private editPageId: string;
     constructor(props: {}) {
         super(props);
+        this.editPageId = "";
         this.state = {
             userTags: [],
             selectedTags: [],
@@ -33,6 +36,8 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
 
     public componentDidMount(): void {
         this.getUsers();
+        this.editPageId = getRequestIdFromURL(window.location.href) ? getRequestIdFromURL(window.location.href) : "";
+        if (this.editPageId) this.loadEditFormData(this.editPageId);
     }
 
     public render() {
@@ -46,7 +51,7 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
                             <TextField onChange={this.handleChange("RequestName")} label={strings.MirgrationName} value={this.state["RequestName"]} />
                             <TextField onChange={this.handleChange("MigrationSource")} label={strings.MirgrationSource} value={this.state["MigrationSource"]} />
                             <TextField onChange={this.handleChange("MigrationDestination")} label={strings.MirgrationDest} value={this.state["MigrationDestination"]} />
-                            <UserPicker allTags={this.state.userTags} fieldTitle={strings.SelectUsers} setSelectedTags={this.setSelectedTags.bind(this)} />
+                            <UserPicker setdefaultSelectedItems={this.state.selectedTags} allTags={this.state.userTags} fieldTitle={strings.SelectUsers} setSelectedTags={this.setSelectedTags.bind(this)} />
                         </div>
                         <div className={styles.rightForm}>
                             <Label>Select Pages</Label>
@@ -54,7 +59,7 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
                         </div>
                     </div>
                     <div className={styles.buttons}>
-                        <PrimaryButton className={styles.button} text={strings.Create} onClick={() => this.onSubmit()} />
+                        <PrimaryButton className={styles.button} text={this.editPageId ? strings.Edit : strings.Create} onClick={() => this.onSubmit()} />
                     </div>
                 </div>
             </div>
@@ -78,14 +83,25 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
         this.setState({ userTags: tags });
     }
 
-    private async onSubmit(id?: number) {
-        try {
-            const response = await axios.post(`/createRequest?RequestName=${this.state.RequestName}&SourceURL=${this.state.MigrationSource}
+    private async onSubmit() {
+        if (this.editPageId === "") {
+            try {
+                const response = await axios.post(`/createRequest?RequestName=${this.state.RequestName}&SourceURL=${this.state.MigrationSource}
             &DestinationURL=${this.state.MigrationDestination}${this.setAssignedUserIDs(this.state.selectedTags)}`);
-            const data = response.data;
-            if (data) window.open(window.location.origin + "/migrationRequests", "_self");
-        } catch (error) {
-            console.log(error);
+                const data = response.data;
+                if (data) window.open(window.location.origin + "/migrationRequests", "_self");
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        else {
+            try {
+                const response = await axios.put(`/updateRequest?id=${this.editPageId}&RequestName=${this.state.RequestName}&SourceURL=${this.state.MigrationSource}&DestinationURL=${this.state.MigrationDestination}${this.setAssignedUserIDs(this.state.selectedTags)}`);
+                const data = response.data;
+                if (data) window.open(window.location.origin + "/migrationRequests", "_self");
+            } catch (error) {
+                console.log(error);
+            }
         }
     }
 
@@ -96,6 +112,26 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
             result.push(id);
         });
         return result ? "&userIDs=" + result.join("&userIDs=") : "";
+    }
+
+    private async loadEditFormData(id: string) {
+        const response = await axios.get(`/viewRequest?id=${id}`);
+        let data = response.data;
+        if (data) {
+            console.log(response.data);
+            this.setState({
+                selectedTags: this.getTagsFromUserData(data.assignedUsers),
+                RequestName: data.requestName,
+                MigrationSource: data.sourceURL,
+                MigrationDestination: data.destinationURL,
+            })
+        }
+    }
+
+    private getTagsFromUserData(users: User[]): ITag[] {
+        const tags: ITag[] = users.map((user: User) => ({ key: user.id, name: user.userName }));
+        console.log(tags);
+        return tags;
     }
 }
 

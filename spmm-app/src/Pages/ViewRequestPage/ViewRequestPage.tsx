@@ -43,7 +43,7 @@ class ViewRequestPage extends React.Component<{}, ViewRequestState> {
             </div>
           </div>
           <div className={styles.buttons}>
-            <PrimaryButton className={styles.button} text={strings.Edit} onClick={() => { }} />
+            <PrimaryButton className={styles.button} text={strings.Edit} onClick={this.editMigrationRequest} />
             <PrimaryButton className={styles.button} text={strings.Delete} onClick={this.deleteMigrationRequest} />
             <PrimaryButton className={styles.button} disabled={ViewRequest.status !== "New"} text={strings.Approve} onClick={this.approveMigrationRequest} />
             <PrimaryButton className={styles.button} disabled={ViewRequest.status === "New"} text={strings.Migrate} onClick={() => { }} />
@@ -57,6 +57,11 @@ class ViewRequestPage extends React.Component<{}, ViewRequestState> {
     let id = getRequestIdFromURL(window.location.href);
     const response = await axios.get(`/viewRequest?id=${id}`);
     this.setState({ ViewRequest: response.data })
+  }
+
+  private async editMigrationRequest() {
+    let id = getRequestIdFromURL(window.location.href);
+    window.open(window.location.origin + "/editRequest/" + id, "_self");
   }
 
   private async deleteMigrationRequest() {
