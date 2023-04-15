@@ -66,13 +66,13 @@ class ViewRequestPage extends React.Component<{}, ViewRequestState> {
 
   private async deleteMigrationRequest() {
     let id = getRequestIdFromURL(window.location.href);
-    axios.delete(`/deleteRequest?id=${id}`);
+    await axios.delete(`/deleteRequest?id=${id}`);
     window.open(window.location.origin + "/migrationRequests", "_self");
   }
 
   private async approveMigrationRequest() {
     let id = getRequestIdFromURL(window.location.href);
-    axios.put(`/approveRequest?id=${id}`);
+    await axios.put(`/approveRequest?id=${id}`);
     window.open(window.location.origin + "/migrationRequests", "_self");
   }
 
