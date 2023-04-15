@@ -20,8 +20,38 @@ namespace BDTB_SPMigration.Controllers
             List<MigrationRequest> requests = new List<MigrationRequest>();
             using MySqlConnection connection = new MySqlConnection(connectionString);
             connection.Open();
-            string query = "SELECT ID, request_name, source_url, destination_url, status FROM migration_request";
+            string query = "SELECT ID, request_name, source_url, destination_url, status FROM migration_request WHERE status = @new OR status = @approved";
             using MySqlCommand command = new MySqlCommand(query, connection);
+            command.Parameters.AddWithValue("@new", "New");
+            command.Parameters.AddWithValue("@approved", "Approved");
+            using MySqlDataReader reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+
+                requests.Add(new MigrationRequest
+                {
+                    ID = reader.GetInt32(0),
+                    RequestName = reader.GetString(1),
+                    SourceURL = reader.GetString(2),
+                    DestinationURL = reader.GetString(3),
+                    Status = reader.GetString(4),
+                    AssignedUsers = getAssignedUsers(reader.GetInt32(0)),
+                });
+            }
+            return requests;
+        }
+
+        [HttpGet("migrationHistory")]
+        public List<MigrationRequest> GetMigrationHistory()
+        {
+            List<MigrationRequest> requests = new List<MigrationRequest>();
+            using MySqlConnection connection = new MySqlConnection(connectionString);
+            connection.Open();
+
+            string query = "SELECT ID, request_name, source_url, destination_url, status FROM migration_request WHERE status = @started OR status = @completed";
+            using MySqlCommand command = new MySqlCommand(query, connection);
+            command.Parameters.AddWithValue("@started", "Started");
+            command.Parameters.AddWithValue("@completed", "Completed");
             using MySqlDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
