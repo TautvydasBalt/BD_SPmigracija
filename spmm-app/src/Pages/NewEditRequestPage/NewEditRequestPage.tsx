@@ -35,9 +35,9 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
     }
 
     public componentDidMount(): void {
-        this.getUsers();
         this.editPageId = getRequestIdFromURL(window.location.href) ? getRequestIdFromURL(window.location.href) : "";
         if (this.editPageId) this.loadEditFormData(this.editPageId);
+        this.getUsers();
     }
 
     public render() {
@@ -51,7 +51,11 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
                             <TextField onChange={this.handleChange("RequestName")} label={strings.MirgrationName} value={this.state["RequestName"]} />
                             <TextField onChange={this.handleChange("MigrationSource")} label={strings.MirgrationSource} value={this.state["MigrationSource"]} />
                             <TextField onChange={this.handleChange("MigrationDestination")} label={strings.MirgrationDest} value={this.state["MigrationDestination"]} />
-                            <UserPicker setdefaultSelectedItems={this.state.selectedTags} allTags={this.state.userTags} fieldTitle={strings.SelectUsers} setSelectedTags={this.setSelectedTags.bind(this)} />
+                            <UserPicker allTags={this.state.userTags}
+                                fieldTitle={strings.SelectUsers}
+                                value={this.state.selectedTags}
+                                onChange={this.handleUserChange.bind(this)}
+                            />
                         </div>
                         <div className={styles.rightForm}>
                             <Label>Select Pages</Label>
@@ -71,10 +75,10 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
         this.setState({ [field]: value });
     };
 
-    private setSelectedTags(selectedItems: ITag[]) {
-        const tags = selectedItems;
+    private handleUserChange(items: ITag[]) {
+        const tags = items;
         this.setState({ selectedTags: tags });
-    }
+    };
 
     private async getUsers() {
         const response = await axios.get(`User/allUsers`);
@@ -116,11 +120,12 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
 
     private async loadEditFormData(id: string) {
         const response = await axios.get(`/viewRequest?id=${id}`);
-        let data = response.data;
-        if (data) {
-            console.log(response.data);
+        if (response && response.data) {
+            let data = response.data;
+            let assignedUsers: User[] = data.assignedUsers;
+            let tags = assignedUsers.map((user: User) => ({ key: user.id, name: user.userName }));
             this.setState({
-                selectedTags: this.getTagsFromUserData(data.assignedUsers),
+                selectedTags: tags,
                 RequestName: data.requestName,
                 MigrationSource: data.sourceURL,
                 MigrationDestination: data.destinationURL,
@@ -128,11 +133,6 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
         }
     }
 
-    private getTagsFromUserData(users: User[]): ITag[] {
-        const tags: ITag[] = users.map((user: User) => ({ key: user.id, name: user.userName }));
-        console.log(tags);
-        return tags;
-    }
 }
 
 export default NewEditRequestPage;

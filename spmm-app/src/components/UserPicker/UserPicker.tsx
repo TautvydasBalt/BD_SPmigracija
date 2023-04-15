@@ -3,17 +3,13 @@ import { ITag, Label, TagPicker, initializeIcons } from '@fluentui/react';
 initializeIcons();
 
 interface UserPickerProps {
-    fieldTitle?: string;
+    fieldTitle: string;
     allTags: ITag[];
-    setSelectedTags?: any;
-    setdefaultSelectedItems?: any;
+    value: ITag[];
+    onChange: any;
 }
 
-interface UserPickerStates {
-    defaultTags: ITag[];
-}
-
-class UserPicker extends React.Component<UserPickerProps, UserPickerStates> {
+class UserPicker extends React.Component<UserPickerProps, {}> {
     public render() {
         return (
             <div>
@@ -23,7 +19,8 @@ class UserPicker extends React.Component<UserPickerProps, UserPickerStates> {
                     selectionAriaLabel={this.props.fieldTitle}
                     pickerCalloutProps={{ doNotLayer: true }} // this option tells the picker's callout to render inline instead of in a new layer
                     onResolveSuggestions={this.filterSuggestedTags}
-                    defaultSelectedItems={this.props.setdefaultSelectedItems}
+                    selectedItems={this.props.value}
+                    onChange={this.props.onChange}
                 />
             </div>
         );
@@ -31,7 +28,6 @@ class UserPicker extends React.Component<UserPickerProps, UserPickerStates> {
 
     private filterSuggestedTags = (filter: string, selectedItems?: ITag[]): ITag[] => {
         let tags = this.props.allTags ? this.props.allTags : [];
-        if (this.props.setSelectedTags || selectedItems) this.props.setSelectedTags(selectedItems);
         return filter
             ? tags.filter(
                 tag => tag.name.toLowerCase().indexOf(filter.toLowerCase()) === 0 && !this.listContainsTagList(tag, selectedItems),
