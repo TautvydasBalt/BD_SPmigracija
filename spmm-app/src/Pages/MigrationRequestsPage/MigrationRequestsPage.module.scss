@@ -6,12 +6,15 @@
     padding-top: 32px;
 }
 
+.list{
+    width: 100%;
+}
+
 .itemCell {
     background-color: #DEDEDE;
     border-radius: 5px;
     margin: 20px 0;
-    min-width: 1000px;
-    max-width: 100%;
+    width: 95%;
     min-height: 200px;
     padding: 10;
     box-sizing: border-box;
@@ -66,12 +69,6 @@
 .status {
     width: unset;
     padding: 16px 0px 0px 16px;
-}
-
-@media only screen and (max-width: 1080px) {
-    .itemCell {
-        min-width: 600px;
-    }
 }
 
 .pageTitle{

@@ -1,7 +1,76 @@
 .container {
     display: flex;
-    align-items: center;
-    height: 50%;
     flex-direction: column;
-    justify-content: center;
+    align-items: flex-start;
+    padding-left: 64px;
+    padding-top: 32px;
+}
+
+.list{
+    width: 100%;
+}
+
+.itemCell {
+    background-color: #DEDEDE;
+    border-radius: 5px;
+    margin: 20px 0;
+    width: 95%;
+    min-height: 200px;
+    padding: 10;
+    box-sizing: border-box;
+    border-bottom: 1px solid gray;
+    display: flex;
+}
+
+.itemContent {
+    margin-left: 10;
+    overflow: hidden;
+    flex-grow: 1;
+}
+
+.itemName {
+    font-size: 20px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 10px;
+}
+
+.itemData {
+    font-size: 14px;
+    white-space: nowrap;
+    padding: 0px 0px 10px 16px;
+    text-overflow: ellipsis;
+}
+
+.sideBar {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 200px;
+}
+
+.button {
+    width: 20px;
+    margin: 10px 16px 10px 16px;
+    background-color: #5C2A2A;
+
+    &:hover {
+        background-color: #A76F6F;
+    }
+}
+
+.buttons {
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: row-reverse;
+}
+
+.status {
+    width: unset;
+    padding: 16px 0px 0px 16px;
+}
+
+.pageTitle{
+    font-size: 28px;
 }

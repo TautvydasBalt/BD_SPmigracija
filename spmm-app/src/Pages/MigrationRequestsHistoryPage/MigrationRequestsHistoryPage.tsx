@@ -14,11 +14,11 @@ class MigrationRequestsHistoryPage extends React.Component<{},{ migrations: any 
     this.state = {
       migrations: [],
     }
-    this.getMigrationRequests = this.getMigrationRequests.bind(this);
+    this.getMigrationHistory = this.getMigrationHistory.bind(this);
   }
 
   public componentDidMount(): void {
-    this.getMigrationRequests();
+    this.getMigrationHistory();
   }
 
   public render() {
@@ -28,7 +28,7 @@ class MigrationRequestsHistoryPage extends React.Component<{},{ migrations: any 
         <Navbar />
         <div className={styles.container}>
           <div className={styles.pageTitle}> Migration History </div>
-          <List onRenderCell={this.onRenderCell} items={migrations} />
+          <List className={styles.list} onRenderCell={this.onRenderCell} items={migrations} />
         </div>
       </div>
     );
@@ -57,8 +57,8 @@ class MigrationRequestsHistoryPage extends React.Component<{},{ migrations: any 
     window.open(window.location.origin + "/viewRequest/" + id, "_self");
   }
 
-  private async getMigrationRequests() {
-    const response = await axios.get(`/allRequests`);
+  private async getMigrationHistory() {
+    const response = await axios.get(`/migrationHistory`);
     this.setState({ migrations: response.data })
   }
 }
