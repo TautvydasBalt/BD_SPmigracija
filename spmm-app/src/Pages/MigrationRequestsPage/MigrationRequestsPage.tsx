@@ -27,8 +27,8 @@ class MigrationRequestsPage extends React.Component<{}, { migrationRequests: any
       <div>
         <Navbar />
         <div className={styles.container}>
-          <div className={styles.pageTitle}> Migration Reqests </div>
-          <List onRenderCell={this.onRenderCell} items={migrationRequests} />
+          <div className={styles.pageTitle}> Migration Requests </div>
+          <List className={styles.list} onRenderCell={this.onRenderCell} items={migrationRequests} />
         </div>
       </div>
     );

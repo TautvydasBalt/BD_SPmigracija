@@ -43,7 +43,7 @@ class ViewRequestPage extends React.Component<{}, ViewRequestState> {
             </div>
           </div>
           <div className={styles.buttons}>
-            <PrimaryButton className={styles.button} text={strings.Edit} onClick={() => { }} />
+            <PrimaryButton className={styles.button} text={strings.Edit} onClick={this.editMigrationRequest} />
             <PrimaryButton className={styles.button} text={strings.Delete} onClick={this.deleteMigrationRequest} />
             <PrimaryButton className={styles.button} disabled={ViewRequest.status !== "New"} text={strings.Approve} onClick={this.approveMigrationRequest} />
             <PrimaryButton className={styles.button} disabled={ViewRequest.status === "New"} text={strings.Migrate} onClick={() => { }} />
@@ -59,15 +59,20 @@ class ViewRequestPage extends React.Component<{}, ViewRequestState> {
     this.setState({ ViewRequest: response.data })
   }
 
+  private async editMigrationRequest() {
+    let id = getRequestIdFromURL(window.location.href);
+    window.open(window.location.origin + "/editRequest/" + id, "_self");
+  }
+
   private async deleteMigrationRequest() {
     let id = getRequestIdFromURL(window.location.href);
-    axios.delete(`/deleteRequest?id=${id}`);
+    await axios.delete(`/deleteRequest?id=${id}`);
     window.open(window.location.origin + "/migrationRequests", "_self");
   }
 
   private async approveMigrationRequest() {
     let id = getRequestIdFromURL(window.location.href);
-    axios.put(`/approveRequest?id=${id}`);
+    await axios.put(`/approveRequest?id=${id}`);
     window.open(window.location.origin + "/migrationRequests", "_self");
   }
 
