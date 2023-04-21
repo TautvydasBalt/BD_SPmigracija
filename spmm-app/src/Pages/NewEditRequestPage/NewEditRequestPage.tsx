@@ -1,4 +1,4 @@
-import { ITag, Label, PrimaryButton, TextField } from '@fluentui/react';
+import { ConstrainMode, DetailsList, ITag, IconButton, Label, Modal, PrimaryButton, TextField } from '@fluentui/react';
 import React from 'react';
 import strings from '../../loc/strings';
 import Navbar from '../../components/NavBar/NavBar';
@@ -17,6 +17,11 @@ interface NewEditRequestState {
     MigrationSource: string;
     MigrationDestination: string;
 
+    SPEmail: string;
+    SPPassword: string;
+    SPlists: any[];
+
+    isModalOpen: boolean;
 }
 
 
@@ -31,6 +36,10 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
             RequestName: "",
             MigrationSource: "",
             MigrationDestination: "",
+            SPEmail: "",
+            SPPassword: "",
+            SPlists: [],
+            isModalOpen: false,
         }
     }
 
@@ -49,7 +58,6 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
                     <div className={styles.Form}>
                         <div className={styles.leftForm}>
                             <TextField onChange={this.handleChange("RequestName")} label={strings.MirgrationName} value={this.state["RequestName"]} />
-                            <TextField onChange={this.handleChange("MigrationSource")} label={strings.MirgrationSource} value={this.state["MigrationSource"]} />
                             <TextField onChange={this.handleChange("MigrationDestination")} label={strings.MirgrationDest} value={this.state["MigrationDestination"]} />
                             <UserPicker allTags={this.state.userTags}
                                 fieldTitle={strings.SelectUsers}
@@ -58,14 +66,37 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
                             />
                         </div>
                         <div className={styles.rightForm}>
+                            <div className={styles.LoadPages}>
+                                <TextField onChange={this.handleChange("MigrationSource")} label={strings.MirgrationSource} value={this.state["MigrationSource"]} />
+                                <PrimaryButton className={styles.button} text={strings.LoadPages} onClick={() => this.setState({ isModalOpen: true })} />
+                            </div>
                             <Label>Select Pages</Label>
-                            <div className={styles.box}>TODO BOX</div>
+                            {this.state.SPlists.length > 0 ? <DetailsList className={styles.list} items={this.state.SPlists} /> : "No data loaded"}
                         </div>
                     </div>
                     <div className={styles.buttons}>
                         <PrimaryButton className={styles.button} text={this.editPageId ? strings.Edit : strings.Create} onClick={() => this.onSubmit()} />
                     </div>
                 </div>
+                <Modal
+                    isOpen={this.state.isModalOpen}
+                    onDismiss={() => this.setState({ isModalOpen: false })}
+                    isBlocking={false}
+                >
+                    <div className={styles.modal}>
+                        <div className={styles.modalTop}>
+                            <Label>Connect with Microsoft Credentials</Label>
+                            <IconButton
+                                iconProps={{ iconName: 'Cancel' }}
+                                ariaLabel="Close popup modal"
+                                onClick={() => this.setState({ isModalOpen: false })}
+                            />
+                        </div>
+                        <TextField onChange={this.handleChange("SPEmail")} label={strings.Email} value={this.state["SPEmail"]} />
+                        <TextField onChange={this.handleChange("SPPassword")} label={strings.Password} value={this.state["SPPassword"]} type="password" />
+                        <PrimaryButton className={styles.button} text={strings.Connect} onClick={this.getPages.bind(this)} />
+                    </div>
+                </Modal>
             </div>
         );
     }
@@ -133,6 +164,12 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
         }
     }
 
+    private async getPages() {
+        const response = await axios.get(`SharePointUser/getSharepointLists?userLogin=${this.state.SPEmail}&userPassword=${this.state.SPPassword}&siteUrl=${this.state.MigrationSource}`);
+        let result: any[] = response.data;
+        this.setState({ SPlists: result });
+        this.setState({ isModalOpen: false });
+    }
 }
 
 export default NewEditRequestPage;
