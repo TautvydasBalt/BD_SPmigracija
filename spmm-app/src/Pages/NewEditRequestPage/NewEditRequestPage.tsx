@@ -1,5 +1,5 @@
 import { DetailsList, IColumn, Selection, ITag, IconButton, Label, Modal, PrimaryButton, SelectionMode, TextField } from '@fluentui/react';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import strings from '../../loc/strings';
 import Navbar from '../../components/NavBar/NavBar';
 import styles from './NewEditRequestPage.module.scss';
