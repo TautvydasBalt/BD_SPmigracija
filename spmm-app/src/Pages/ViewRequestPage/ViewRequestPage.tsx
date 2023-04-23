@@ -2,7 +2,7 @@ import { PrimaryButton } from '@fluentui/react';
 import axios from 'axios';
 import React from 'react';
 import Navbar from '../../components/NavBar/NavBar';
-import { getRequestIdFromURL, showAssignedUsersNames, showData } from '../../global/dataHandler';
+import { getRequestIdFromURL, showAssignedPageTitles, showAssignedUsersNames, showData } from '../../global/dataHandler';
 import strings from '../../loc/strings';
 import styles from './ViewRequestPage.module.scss';
 
@@ -38,7 +38,7 @@ class ViewRequestPage extends React.Component<{}, ViewRequestState> {
               <div className={styles.itemData}>{"Assigned To: " + showAssignedUsersNames(ViewRequest.assignedUsers)}</div>
               <div className={styles.itemData}>{"Source URL: " + showData(ViewRequest.sourceURL)}</div>
               <div className={styles.itemData}>{"Destination URL: " + showData(ViewRequest.destinationURL)}</div>
-              <div className={styles.itemData}>{"Selected Pages: " + showData(ViewRequest.SelectedPages)}</div>
+              <div className={styles.itemData}>{"Selected Pages: " + showAssignedPageTitles(ViewRequest.sharepointLists)}</div>
 
             </div>
           </div>

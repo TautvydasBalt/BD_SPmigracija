@@ -10,5 +10,6 @@ namespace BDTB_SPMigration.Models
         public string DestinationURL { get; set; }
         public string Status { get; set; }
         public List<User> AssignedUsers { get; set; }
+        public List<SharepointList> sharepointLists { get; set; }
     }
 }

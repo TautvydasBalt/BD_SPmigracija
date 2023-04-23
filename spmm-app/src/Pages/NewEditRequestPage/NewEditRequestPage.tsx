@@ -1,5 +1,5 @@
-import { ConstrainMode, DetailsList, ITag, IconButton, Label, Modal, PrimaryButton, TextField } from '@fluentui/react';
-import React from 'react';
+import { DetailsList, IColumn, Selection, ITag, IconButton, Label, Modal, PrimaryButton, SelectionMode, TextField } from '@fluentui/react';
+import React, { useEffect, useState } from 'react';
 import strings from '../../loc/strings';
 import Navbar from '../../components/NavBar/NavBar';
 import styles from './NewEditRequestPage.module.scss';
@@ -20,6 +20,7 @@ interface NewEditRequestState {
     SPEmail: string;
     SPPassword: string;
     SPlists: any[];
+    selectedSPlists: any[];
 
     isModalOpen: boolean;
 }
@@ -27,9 +28,11 @@ interface NewEditRequestState {
 
 class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
     private editPageId: string;
+    private columns: IColumn[];
     constructor(props: {}) {
         super(props);
         this.editPageId = "";
+        this.columns = [{ key: "column1", name: "Title", fieldName: "title", minWidth: 100 }];
         this.state = {
             userTags: [],
             selectedTags: [],
@@ -39,6 +42,7 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
             SPEmail: "",
             SPPassword: "",
             SPlists: [],
+            selectedSPlists: [],
             isModalOpen: false,
         }
     }
@@ -71,7 +75,14 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
                                 <PrimaryButton className={styles.button} text={strings.LoadPages} onClick={() => this.setState({ isModalOpen: true })} />
                             </div>
                             <Label>Select Pages</Label>
-                            {this.state.SPlists.length > 0 ? <DetailsList className={styles.list} items={this.state.SPlists} /> : "No data loaded"}
+                            {this.state.SPlists.length > 0 ?
+                                <DetailsList
+                                    selection={this.selection}
+                                    selectionMode={SelectionMode.multiple}
+                                    columns={this.columns}
+                                    className={styles.list}
+                                    items={this.state.SPlists} />
+                                : "No data loaded"}
                         </div>
                     </div>
                     <div className={styles.buttons}>
@@ -121,8 +132,14 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
     private async onSubmit() {
         if (this.editPageId === "") {
             try {
-                const response = await axios.post(`/createRequest?RequestName=${this.state.RequestName}&SourceURL=${this.state.MigrationSource}
-            &DestinationURL=${this.state.MigrationDestination}${this.setAssignedUserIDs(this.state.selectedTags)}`);
+                let bodyParameters = {
+                    requestName: this.state.RequestName,
+                    sourceURL: this.state.MigrationSource,
+                    destinationURL: this.state.MigrationDestination,
+                    assignedUsers: this.setAssignedUserIDs(this.state.selectedTags),
+                    sharepointLists: this.state.selectedSPlists
+                };
+                const response = await axios.post("/createRequest", bodyParameters);
                 const data = response.data;
                 if (data) window.open(window.location.origin + "/migrationRequests", "_self");
             } catch (error) {
@@ -131,7 +148,15 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
         }
         else {
             try {
-                const response = await axios.put(`/updateRequest?id=${this.editPageId}&RequestName=${this.state.RequestName}&SourceURL=${this.state.MigrationSource}&DestinationURL=${this.state.MigrationDestination}${this.setAssignedUserIDs(this.state.selectedTags)}`);
+                let bodyParameters = {
+                    id: this.editPageId,
+                    requestName: this.state.RequestName,
+                    sourceURL: this.state.MigrationSource,
+                    destinationURL: this.state.MigrationDestination,
+                    assignedUsers: this.setAssignedUserIDs(this.state.selectedTags),
+                    sharepointLists: this.state.selectedSPlists
+                };
+                const response = await axios.put("/updateRequest", bodyParameters);
                 const data = response.data;
                 if (data) window.open(window.location.origin + "/migrationRequests", "_self");
             } catch (error) {
@@ -140,13 +165,9 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
         }
     }
 
-    private setAssignedUserIDs(tags: ITag[]): string {
-        let result: string[] = [];
-        tags.forEach(tag => {
-            let id: any = tag.key;
-            result.push(id);
-        });
-        return result ? "&userIDs=" + result.join("&userIDs=") : "";
+    private setAssignedUserIDs(tags: ITag[]): any[] {
+        let users: any[] = tags.map((tag: ITag) => ({ id: tag.key }));
+        return users;
     }
 
     private async loadEditFormData(id: string) {
@@ -170,6 +191,14 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
         this.setState({ SPlists: result });
         this.setState({ isModalOpen: false });
     }
+
+    private selection = new Selection({
+        onSelectionChanged: () => {
+            let selectedItems = this.selection.getSelection();
+            this.setState({ selectedSPlists: selectedItems });
+        },
+    });
+
 }
 
 export default NewEditRequestPage;

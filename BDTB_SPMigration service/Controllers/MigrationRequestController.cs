@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Security.Cryptography;
 
@@ -114,6 +115,7 @@ namespace BDTB_SPMigration.Controllers
                     migrationRequest.DestinationURL = reader.GetString(3);
                     migrationRequest.Status = reader.GetString(4);
                     migrationRequest.AssignedUsers = getAssignedUsers(reader.GetInt32(0));
+                    migrationRequest.sharepointLists = getSharepointLists(reader.GetInt32(0));
                     reader.Close();
                     return migrationRequest;
                 }
@@ -127,7 +129,7 @@ namespace BDTB_SPMigration.Controllers
         }
 
         [HttpPost("createRequest")]
-        public bool createRequest(string RequestName, string SourceURL, string DestinationURL, int[] userIDs)
+        public bool createRequest([FromBody] MigrationRequest requestjson)
         {
             using MySqlConnection connection = new MySqlConnection(connectionString);
             try
@@ -136,18 +138,25 @@ namespace BDTB_SPMigration.Controllers
                 string query = "INSERT INTO migration_request (request_name, source_url, destination_url, status) VALUES (@request_name, @source_url, @destination_url, @status)";
 
                 MySqlCommand command = new MySqlCommand(query, connection);
-                command.Parameters.AddWithValue("@request_name", RequestName);
-                command.Parameters.AddWithValue("@source_url", SourceURL);
-                command.Parameters.AddWithValue("@destination_url", DestinationURL);
+                command.Parameters.AddWithValue("@request_name", requestjson.RequestName);
+                command.Parameters.AddWithValue("@source_url", requestjson.SourceURL);
+                command.Parameters.AddWithValue("@destination_url", requestjson.DestinationURL);
                 command.Parameters.AddWithValue("@status", "New");
 
                 int rowsAffected = command.ExecuteNonQuery();
 
-                if (userIDs.Length > 0)
+                if (requestjson.AssignedUsers != null && requestjson.AssignedUsers.Count > 0)
                 {
                     int id = (int)command.LastInsertedId;
-                    assignUsersToRequest(connection, userIDs, id);
+                    assignUsersToRequest(connection, requestjson.AssignedUsers, id);
                 }
+ 
+                if (requestjson.sharepointLists != null && requestjson.sharepointLists.Count > 0)
+                {
+                    int id = (int)command.LastInsertedId;
+                    assignPagesToRequest(connection, requestjson.sharepointLists, id);
+                }
+
                 if (rowsAffected > 0) return true;
                 else return false;
             }
@@ -159,7 +168,7 @@ namespace BDTB_SPMigration.Controllers
         }
 
         [HttpPut("updateRequest")]
-        public bool updateRequest(int id,string RequestName, string SourceURL, string DestinationURL, int[] userIDs)
+        public bool updateRequest([FromBody] MigrationRequest requestjson)
         {
             using MySqlConnection connection = new MySqlConnection(connectionString);
             try
@@ -168,17 +177,24 @@ namespace BDTB_SPMigration.Controllers
                 string query = "UPDATE migration_request SET request_name = @request_name, source_url = @source_url, destination_url = @destination_url WHERE ID = @id";
 
                 MySqlCommand command = new MySqlCommand(query, connection);
-                command.Parameters.AddWithValue("@id", id);
-                command.Parameters.AddWithValue("@request_name", RequestName);
-                command.Parameters.AddWithValue("@source_url", SourceURL);
-                command.Parameters.AddWithValue("@destination_url", DestinationURL);
+                command.Parameters.AddWithValue("@id", requestjson.ID);
+                command.Parameters.AddWithValue("@request_name", requestjson.RequestName);
+                command.Parameters.AddWithValue("@source_url", requestjson.SourceURL);
+                command.Parameters.AddWithValue("@destination_url", requestjson.DestinationURL);
 
                 int rowsAffected = command.ExecuteNonQuery();
-                if (userIDs.Length == 0) deleteAllRequestUsers(connection, id);
-                else if (userIDs.Length > 0)
+                if (requestjson.AssignedUsers != null && requestjson.AssignedUsers.Count == 0) deleteAllRequestUsers(connection, requestjson.ID);
+                else if (requestjson.AssignedUsers != null && requestjson.AssignedUsers.Count > 0)
                 {
-                    deleteAllRequestUsers(connection, id);
-                    assignUsersToRequest(connection, userIDs, id);
+                    deleteAllRequestUsers(connection, requestjson.ID);
+                    assignUsersToRequest(connection, requestjson.AssignedUsers, requestjson.ID);
+                }
+
+                if (requestjson.sharepointLists != null && requestjson.sharepointLists.Count == 0) deleteAllRequestLists(connection, requestjson.ID);
+                if (requestjson.sharepointLists != null && requestjson.sharepointLists.Count > 0)
+                {
+                    deleteAllRequestLists(connection, requestjson.ID);
+                    assignPagesToRequest(connection, requestjson.sharepointLists, requestjson.ID);
                 }
 
                 if (rowsAffected > 0) return true;
@@ -223,6 +239,7 @@ namespace BDTB_SPMigration.Controllers
             {
                 connection.Open();
                 deleteAllRequestUsers(connection, id);
+                deleteAllRequestLists(connection, id);
 
                 string query = "DELETE FROM migration_request WHERE ID = @id";
                 MySqlCommand command = new MySqlCommand(query, connection);
@@ -249,14 +266,24 @@ namespace BDTB_SPMigration.Controllers
             if (rowsAffected > 0) return true;
             else return false;
         }
+        public bool deleteAllRequestLists(MySqlConnection connection, int id)
+        {
+            string query = "DELETE FROM assigned_lists WHERE ID_request = @id";
+            MySqlCommand command = new MySqlCommand(query, connection);
+            command.Parameters.AddWithValue("@id", id);
+            int rowsAffected = command.ExecuteNonQuery();
 
-        public bool assignUsersToRequest(MySqlConnection connection, int[] userIDs, int requestID)
+            if (rowsAffected > 0) return true;
+            else return false;
+        }
+
+        public bool assignUsersToRequest(MySqlConnection connection, List<User> userIDs, int requestID)
         {
             string values = "";
-            for (int i = 0; i <= userIDs.Length - 1; i++)
+            for (int i = 0; i <= userIDs.Count - 1; i++)
             {
-                values += "(" + userIDs[i] + "," + requestID + ')';
-                if (i < userIDs.Length - 1) values += ", ";
+                values += "(" + userIDs[i].ID + "," + requestID + ')';
+                if (i < userIDs.Count - 1) values += ", ";
             }
 
             string query = "INSERT INTO `assigned_users` (`ID_user`, `ID_request`) VALUES " + values;
@@ -266,5 +293,44 @@ namespace BDTB_SPMigration.Controllers
             if (rowsAffected > 0) return true;
             else return false;
         }
+
+        private List<SharepointList> getSharepointLists(int id)
+        {
+            List<SharepointList> lists = new List<SharepointList>();
+            using MySqlConnection connection = new MySqlConnection(connectionString);
+            connection.Open();
+            string query = "SELECT al.guid, al.title FROM assigned_lists as al INNER JOIN migration_request as mr ON mr.id = al.ID_request WHERE al.id_request = @id;";
+
+            MySqlCommand command = new MySqlCommand(query, connection);
+            command.Parameters.AddWithValue("@id", id);
+            MySqlDataReader reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                lists.Add(new SharepointList
+                {
+                    Id = reader.GetGuid(0),
+                    Title = reader.GetString(1),
+                });
+            }
+            return lists;
+        }
+
+        public bool assignPagesToRequest(MySqlConnection connection, List<SharepointList> SPlists, int requestID)
+        {
+            string values = "";
+            for (int i = 0; i <= SPlists.Count - 1; i++)
+            {
+                values += "('" + SPlists[i].Id.ToString() + "','" + SPlists[i].Title + "','" + requestID + "')";
+                if (i < SPlists.Count - 1) values += ", ";
+            }
+
+            string query = "INSERT INTO `assigned_lists` (`guid`, `title`, `ID_request`) VALUES " + values;
+            MySqlCommand command = new MySqlCommand(query, connection);
+            int rowsAffected = command.ExecuteNonQuery();
+
+            if (rowsAffected > 0) return true;
+            else return false;
+        }
+
     }
 }
