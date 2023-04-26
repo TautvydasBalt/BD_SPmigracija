@@ -115,7 +115,7 @@ namespace BDTB_SPMigration.Controllers
                     migrationRequest.DestinationURL = reader.GetString(3);
                     migrationRequest.Status = reader.GetString(4);
                     migrationRequest.AssignedUsers = getAssignedUsers(reader.GetInt32(0));
-                    migrationRequest.sharepointLists = getSharepointLists(reader.GetInt32(0));
+                    migrationRequest.sharepointPages = getSharepointPages(reader.GetInt32(0));
                     reader.Close();
                     return migrationRequest;
                 }
@@ -151,10 +151,10 @@ namespace BDTB_SPMigration.Controllers
                     assignUsersToRequest(connection, requestjson.AssignedUsers, id);
                 }
  
-                if (requestjson.sharepointLists != null && requestjson.sharepointLists.Count > 0)
+                if (requestjson.sharepointPages != null && requestjson.sharepointPages.Count > 0)
                 {
                     int id = (int)command.LastInsertedId;
-                    assignPagesToRequest(connection, requestjson.sharepointLists, id);
+                    assignPagesToRequest(connection, requestjson.sharepointPages, id);
                 }
 
                 if (rowsAffected > 0) return true;
@@ -190,11 +190,11 @@ namespace BDTB_SPMigration.Controllers
                     assignUsersToRequest(connection, requestjson.AssignedUsers, requestjson.ID);
                 }
 
-                if (requestjson.sharepointLists != null && requestjson.sharepointLists.Count == 0) deleteAllRequestLists(connection, requestjson.ID);
-                if (requestjson.sharepointLists != null && requestjson.sharepointLists.Count > 0)
+                if (requestjson.sharepointPages != null && requestjson.sharepointPages.Count == 0) deleteAllRequestPages(connection, requestjson.ID);
+                if (requestjson.sharepointPages != null && requestjson.sharepointPages.Count > 0)
                 {
-                    deleteAllRequestLists(connection, requestjson.ID);
-                    assignPagesToRequest(connection, requestjson.sharepointLists, requestjson.ID);
+                    deleteAllRequestPages(connection, requestjson.ID);
+                    assignPagesToRequest(connection, requestjson.sharepointPages, requestjson.ID);
                 }
 
                 if (rowsAffected > 0) return true;
@@ -239,7 +239,7 @@ namespace BDTB_SPMigration.Controllers
             {
                 connection.Open();
                 deleteAllRequestUsers(connection, id);
-                deleteAllRequestLists(connection, id);
+                deleteAllRequestPages(connection, id);
 
                 string query = "DELETE FROM migration_request WHERE ID = @id";
                 MySqlCommand command = new MySqlCommand(query, connection);
@@ -266,9 +266,9 @@ namespace BDTB_SPMigration.Controllers
             if (rowsAffected > 0) return true;
             else return false;
         }
-        public bool deleteAllRequestLists(MySqlConnection connection, int id)
+        public bool deleteAllRequestPages(MySqlConnection connection, int id)
         {
-            string query = "DELETE FROM assigned_lists WHERE ID_request = @id";
+            string query = "DELETE FROM assigned_pages WHERE ID_request = @id";
             MySqlCommand command = new MySqlCommand(query, connection);
             command.Parameters.AddWithValue("@id", id);
             int rowsAffected = command.ExecuteNonQuery();
@@ -294,37 +294,37 @@ namespace BDTB_SPMigration.Controllers
             else return false;
         }
 
-        private List<SharepointList> getSharepointLists(int id)
+        private List<SharepointPage> getSharepointPages(int id)
         {
-            List<SharepointList> lists = new List<SharepointList>();
+            List<SharepointPage> pages = new List<SharepointPage>();
             using MySqlConnection connection = new MySqlConnection(connectionString);
             connection.Open();
-            string query = "SELECT al.guid, al.title FROM assigned_lists as al INNER JOIN migration_request as mr ON mr.id = al.ID_request WHERE al.id_request = @id;";
+            string query = "SELECT al.id, al.title FROM assigned_pages as al INNER JOIN migration_request as mr ON mr.id = al.ID_request WHERE al.id_request = @id;";
 
             MySqlCommand command = new MySqlCommand(query, connection);
             command.Parameters.AddWithValue("@id", id);
             MySqlDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
-                lists.Add(new SharepointList
+                pages.Add(new SharepointPage
                 {
-                    Id = reader.GetGuid(0),
+                    Id = reader.GetInt32(0),
                     Title = reader.GetString(1),
                 });
             }
-            return lists;
+            return pages;
         }
 
-        public bool assignPagesToRequest(MySqlConnection connection, List<SharepointList> SPlists, int requestID)
+        public bool assignPagesToRequest(MySqlConnection connection, List<SharepointPage> SPpages, int requestID)
         {
             string values = "";
-            for (int i = 0; i <= SPlists.Count - 1; i++)
+            for (int i = 0; i <= SPpages.Count - 1; i++)
             {
-                values += "('" + SPlists[i].Id.ToString() + "','" + SPlists[i].Title + "','" + requestID + "')";
-                if (i < SPlists.Count - 1) values += ", ";
+                values += "('" + SPpages[i].Id.ToString() + "','" + SPpages[i].Title + "','" + requestID + "')";
+                if (i < SPpages.Count - 1) values += ", ";
             }
 
-            string query = "INSERT INTO `assigned_lists` (`guid`, `title`, `ID_request`) VALUES " + values;
+            string query = "INSERT INTO `assigned_pages` (`id`, `title`, `ID_request`) VALUES " + values;
             MySqlCommand command = new MySqlCommand(query, connection);
             int rowsAffected = command.ExecuteNonQuery();
 

@@ -19,8 +19,8 @@ interface NewEditRequestState {
 
     SPEmail: string;
     SPPassword: string;
-    SPlists: any[];
-    selectedSPlists: any[];
+    SPpages: any[];
+    selectedSPpages: any[];
 
     isModalOpen: boolean;
 }
@@ -41,8 +41,8 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
             MigrationDestination: "",
             SPEmail: "",
             SPPassword: "",
-            SPlists: [],
-            selectedSPlists: [],
+            SPpages: [],
+            selectedSPpages: [],
             isModalOpen: false,
         }
     }
@@ -75,13 +75,13 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
                                 <PrimaryButton className={styles.button} text={strings.LoadPages} onClick={() => this.setState({ isModalOpen: true })} />
                             </div>
                             <Label>Select Pages</Label>
-                            {this.state.SPlists.length > 0 ?
+                            {this.state.SPpages.length > 0 ?
                                 <DetailsList
                                     selection={this.selection}
                                     selectionMode={SelectionMode.multiple}
                                     columns={this.columns}
                                     className={styles.list}
-                                    items={this.state.SPlists} />
+                                    items={this.state.SPpages} />
                                 : "No data loaded"}
                         </div>
                     </div>
@@ -137,7 +137,7 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
                     sourceURL: this.state.MigrationSource,
                     destinationURL: this.state.MigrationDestination,
                     assignedUsers: this.setAssignedUserIDs(this.state.selectedTags),
-                    sharepointLists: this.state.selectedSPlists
+                    sharepointPages: this.state.selectedSPpages
                 };
                 const response = await axios.post("/createRequest", bodyParameters);
                 const data = response.data;
@@ -154,7 +154,7 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
                     sourceURL: this.state.MigrationSource,
                     destinationURL: this.state.MigrationDestination,
                     assignedUsers: this.setAssignedUserIDs(this.state.selectedTags),
-                    sharepointLists: this.state.selectedSPlists
+                    sharepointPages: this.state.selectedSPpages
                 };
                 const response = await axios.put("/updateRequest", bodyParameters);
                 const data = response.data;
@@ -186,16 +186,16 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
     }
 
     private async getPages() {
-        const response = await axios.get(`SharePointUser/getSharepointLists?userLogin=${this.state.SPEmail}&userPassword=${this.state.SPPassword}&siteUrl=${this.state.MigrationSource}`);
+        const response = await axios.get(`SharePoint/getSPPages?userLogin=${this.state.SPEmail}&userPassword=${this.state.SPPassword}&siteUrl=${this.state.MigrationSource}`);
         let result: any[] = response.data;
-        this.setState({ SPlists: result });
+        this.setState({ SPpages: result });
         this.setState({ isModalOpen: false });
     }
 
     private selection = new Selection({
         onSelectionChanged: () => {
             let selectedItems = this.selection.getSelection();
-            this.setState({ selectedSPlists: selectedItems });
+            this.setState({ selectedSPpages: selectedItems });
         },
     });
 

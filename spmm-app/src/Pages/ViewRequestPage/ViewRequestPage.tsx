@@ -38,7 +38,7 @@ class ViewRequestPage extends React.Component<{}, ViewRequestState> {
               <div className={styles.itemData}>{"Assigned To: " + showAssignedUsersNames(ViewRequest.assignedUsers)}</div>
               <div className={styles.itemData}>{"Source URL: " + showData(ViewRequest.sourceURL)}</div>
               <div className={styles.itemData}>{"Destination URL: " + showData(ViewRequest.destinationURL)}</div>
-              <div className={styles.itemData}>{"Selected Pages: " + showAssignedPageTitles(ViewRequest.sharepointLists)}</div>
+              <div className={styles.itemData}>{"Selected Pages: " + showAssignedPageTitles(ViewRequest.sharepointPages)}</div>
 
             </div>
           </div>
