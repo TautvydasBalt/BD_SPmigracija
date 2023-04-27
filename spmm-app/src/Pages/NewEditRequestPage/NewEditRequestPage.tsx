@@ -1,4 +1,4 @@
-import { DetailsList, IColumn, Selection, ITag, IconButton, Label, Modal, PrimaryButton, SelectionMode, TextField } from '@fluentui/react';
+import { DetailsList, IColumn, Selection, ITag, Label, PrimaryButton, SelectionMode, TextField, Separator, CheckboxVisibility, Spinner } from '@fluentui/react';
 import React from 'react';
 import strings from '../../loc/strings';
 import Navbar from '../../components/NavBar/NavBar';
@@ -7,6 +7,7 @@ import UserPicker from '../../components/UserPicker/UserPicker';
 import axios from 'axios';
 import { User } from '../../global/globalInterfaces';
 import { getRequestIdFromURL } from '../../global/dataHandler';
+import MigrationAuth from '../../components/MigrationAuth/MigrationAuth';
 
 interface NewEditRequestState {
     userTags: ITag[];
@@ -15,14 +16,22 @@ interface NewEditRequestState {
     [key: string]: NewEditRequestState[keyof NewEditRequestState];
     RequestName: string;
     MigrationSource: string;
-    MigrationDestination: string;
+    MigrationDest: string;
 
-    SPEmail: string;
-    SPPassword: string;
+    SPEmailSource: string;
+    SPPasswordSource: string;
+    SPEmailDest: string;
+    SPPasswordDest: string;
+
     SPpages: any[];
     selectedSPpages: any[];
 
-    isModalOpen: boolean;
+    errSource: string;
+    errDest: string;
+    succSource: string;
+    succDest: string;
+
+    loadingPages: boolean;
 }
 
 
@@ -38,12 +47,18 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
             selectedTags: [],
             RequestName: "",
             MigrationSource: "",
-            MigrationDestination: "",
-            SPEmail: "",
-            SPPassword: "",
+            MigrationDest: "",
+            SPEmailSource: "",
+            SPPasswordSource: "",
+            SPEmailDest: "",
+            SPPasswordDest: "",
             SPpages: [],
             selectedSPpages: [],
-            isModalOpen: false,
+            errSource: "",
+            errDest: "",
+            succSource: "",
+            succDest: "",
+            loadingPages: false,
         }
     }
 
@@ -57,58 +72,63 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
         return (
             <div>
                 <Navbar />
-                <div className={styles.pageContainer}>
-                    <div className={styles.pageTitle}>Create Request </div>
+                <form className={styles.pageContainer}>
+                    <div className={styles.pageTitle}>{this.editPageId ? strings.Update : strings.Create} Request </div>
                     <div className={styles.Form}>
                         <div className={styles.leftForm}>
                             <TextField onChange={this.handleChange("RequestName")} label={strings.MirgrationName} value={this.state["RequestName"]} />
-                            <TextField onChange={this.handleChange("MigrationDestination")} label={strings.MirgrationDest} value={this.state["MigrationDestination"]} />
                             <UserPicker allTags={this.state.userTags}
                                 fieldTitle={strings.SelectUsers}
                                 value={this.state.selectedTags}
                                 onChange={this.handleUserChange.bind(this)}
                             />
+                            <Separator />
+                            <MigrationAuth
+                                buttonLabel={strings.LoadPages}
+                                url={this.state["MigrationSource"]}
+                                email={this.state["SPEmailSource"]}
+                                password={this.state["SPPasswordSource"]}
+                                onChange={this.handleChange}
+                                onClick={this.getPages.bind(this)}
+                                errorMessage={this.state.errSource}
+                                sucessMessage={this.state.succSource}
+                            />
                         </div>
+                        <Separator vertical />
                         <div className={styles.rightForm}>
-                            <div className={styles.LoadPages}>
-                                <TextField onChange={this.handleChange("MigrationSource")} label={strings.MirgrationSource} value={this.state["MigrationSource"]} />
-                                <PrimaryButton className={styles.button} text={strings.LoadPages} onClick={() => this.setState({ isModalOpen: true })} />
-                            </div>
-                            <Label>Select Pages</Label>
-                            {this.state.SPpages.length > 0 ?
+                            <MigrationAuth
+                                destination
+                                buttonLabel={strings.CheckConn}
+                                url={this.state["MigrationDest"]}
+                                email={this.state["SPEmailDest"]}
+                                password={this.state["SPPasswordDest"]}
+                                onChange={this.handleChange}
+                                onClick={this.checkConnection.bind(this)}
+                                errorMessage={this.state.errDest}
+                                sucessMessage={this.state.succDest}
+                            />
+                        </div>
+                    </div>
+                    <Separator />
+                    <div className={styles.LoadPages}>
+                        <Label>Select Pages</Label>
+                        {this.state.loadingPages ? <Spinner label="Loading pages..." /> :
+                            this.state.SPpages.length > 0 ?
                                 <DetailsList
+                                    checkboxVisibility={CheckboxVisibility.always}
                                     selection={this.selection}
                                     selectionMode={SelectionMode.multiple}
                                     columns={this.columns}
                                     className={styles.list}
                                     items={this.state.SPpages} />
-                                : "No data loaded"}
-                        </div>
+                                : "No Pages loaded"}
+
                     </div>
                     <div className={styles.buttons}>
-                        <PrimaryButton className={styles.button} text={this.editPageId ? strings.Edit : strings.Create} onClick={() => this.onSubmit()} />
+                        <PrimaryButton className={styles.button} text={this.editPageId ? strings.Update : strings.Create} onClick={() => this.onSubmit()} />
                     </div>
-                </div>
-                <Modal
-                    isOpen={this.state.isModalOpen}
-                    onDismiss={() => this.setState({ isModalOpen: false })}
-                    isBlocking={false}
-                >
-                    <div className={styles.modal}>
-                        <div className={styles.modalTop}>
-                            <Label>Connect with Microsoft Credentials</Label>
-                            <IconButton
-                                iconProps={{ iconName: 'Cancel' }}
-                                ariaLabel="Close popup modal"
-                                onClick={() => this.setState({ isModalOpen: false })}
-                            />
-                        </div>
-                        <TextField onChange={this.handleChange("SPEmail")} label={strings.Email} value={this.state["SPEmail"]} />
-                        <TextField onChange={this.handleChange("SPPassword")} label={strings.Password} value={this.state["SPPassword"]} type="password" />
-                        <PrimaryButton className={styles.button} text={strings.Connect} onClick={this.getPages.bind(this)} />
-                    </div>
-                </Modal>
-            </div>
+                </form>
+            </div >
         );
     }
 
@@ -135,7 +155,7 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
                 let bodyParameters = {
                     requestName: this.state.RequestName,
                     sourceURL: this.state.MigrationSource,
-                    destinationURL: this.state.MigrationDestination,
+                    destinationURL: this.state.MigrationDest,
                     assignedUsers: this.setAssignedUserIDs(this.state.selectedTags),
                     sharepointPages: this.state.selectedSPpages
                 };
@@ -152,7 +172,7 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
                     id: this.editPageId,
                     requestName: this.state.RequestName,
                     sourceURL: this.state.MigrationSource,
-                    destinationURL: this.state.MigrationDestination,
+                    destinationURL: this.state.MigrationDest,
                     assignedUsers: this.setAssignedUserIDs(this.state.selectedTags),
                     sharepointPages: this.state.selectedSPpages
                 };
@@ -180,16 +200,34 @@ class NewEditRequestPage extends React.Component<{}, NewEditRequestState> {
                 selectedTags: tags,
                 RequestName: data.requestName,
                 MigrationSource: data.sourceURL,
-                MigrationDestination: data.destinationURL,
+                MigrationDest: data.destinationURL,
             })
         }
     }
 
     private async getPages() {
-        const response = await axios.get(`SharePoint/getSPPages?userLogin=${this.state.SPEmail}&userPassword=${this.state.SPPassword}&siteUrl=${this.state.MigrationSource}`);
+        this.setState({ loadingPages: true });
+        const response = await axios.get(`SharePoint/getSPPages?userLogin=${this.state.SPEmailSource}&userPassword=${this.state.SPPasswordSource}&siteUrl=${this.state.MigrationSource}`);
         let result: any[] = response.data;
-        this.setState({ SPpages: result });
-        this.setState({ isModalOpen: false });
+        if (result) {
+            this.setState({ loadingPages: false });
+            this.setState({ SPpages: result });
+        }
+        else {
+            this.setState({ errSource: strings.errSource });
+            this.setState({ loadingPages: false });
+        }
+    }
+
+    private async checkConnection() {
+        const response = await axios.get(`SharePoint?userLogin=${this.state.SPEmailDest}&userPassword=${this.state.SPPasswordDest}&siteUrl=${this.state.MigrationDest}`);
+        let result: any[] = response.data;
+        if (result) {
+            this.setState({ errDest: "" });
+            this.setState({ succDest: strings.succDest });
+            setTimeout(() => this.setState({ succDest: "" }), 5000);
+        }
+        else this.setState({ errDest: strings.errDest });
     }
 
     private selection = new Selection({

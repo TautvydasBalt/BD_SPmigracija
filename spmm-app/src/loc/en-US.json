@@ -17,6 +17,12 @@
     "SelectPages": "Select Pages",
     "SelectUsers": "Select Users",
     "LoadPages": "Load Pages",
-    "Connect": "Connect"
+    "CheckConn": "Check Connection",
+    "Connect": "Connect",
+    "Update": "Update",
+    "errSource": "Cannot connect to source. Check URL and credentials.",
+    "errDest": "Cannot connect to destination. Check URL and credentials.",
+    "succDest": "Connection successful",
+    "Continue": "Continue"
 }
   

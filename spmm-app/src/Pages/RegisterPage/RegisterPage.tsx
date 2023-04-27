@@ -18,7 +18,7 @@ class RegisterPage extends React.Component<{}, {}> {
 
   render() {
     return (
-      <div className={styles.loginForm}>
+      <form className={styles.loginForm}>
         Register
         <TextField className={styles.textField} onChange={this.handleTextFieldChangeUsername} label={strings.Username} />
         <TextField className={styles.textField} onChange={this.handleTextFieldChangePassword}
@@ -33,7 +33,7 @@ class RegisterPage extends React.Component<{}, {}> {
         <div className={styles.buttons}>
           <PrimaryButton text={strings.Register} onClick={this.registerUser.bind(this)} />
         </div>
-      </div>
+      </form>
     );
   }
 

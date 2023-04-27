@@ -1,0 +1,34 @@
+.migrationAuth .button {
+    margin-top: 10px;
+    margin-bottom: 10px;
+
+    background-color: #5C2A2A;
+
+    &:hover {
+        background-color: #A76F6F;
+    }
+
+    &:disabled,
+    &[disabled] {
+        border: 1px solid #999999;
+        background-color: #cccccc;
+        color: #666666;
+    }
+}
+
+.migrationAuth{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.rightForm .migrationAuth{
+    height: 100%;
+}
+
+.buttons {
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: row-reverse;
+    width: 100%;
+}

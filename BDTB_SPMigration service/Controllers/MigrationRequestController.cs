@@ -111,8 +111,8 @@ namespace BDTB_SPMigration.Controllers
                     reader.Read();
                     migrationRequest.ID = reader.GetInt32(0);
                     migrationRequest.RequestName = reader.GetString(1);
-                    migrationRequest.SourceURL = reader.GetString(2);
-                    migrationRequest.DestinationURL = reader.GetString(3);
+                    migrationRequest.DestinationURL = reader.GetString(2);
+                    migrationRequest.SourceURL = reader.GetString(3);
                     migrationRequest.Status = reader.GetString(4);
                     migrationRequest.AssignedUsers = getAssignedUsers(reader.GetInt32(0));
                     migrationRequest.sharepointPages = getSharepointPages(reader.GetInt32(0));

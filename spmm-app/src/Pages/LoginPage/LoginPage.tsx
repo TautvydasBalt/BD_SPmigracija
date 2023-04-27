@@ -16,7 +16,7 @@ class LoginPage extends React.Component<{}, {}> {
 
   render() {
     return (
-      <div className={styles.loginForm}>
+      <form className={styles.loginForm}>
         SPMigration
         <TextField className={styles.textField} onChange={this.handleTextFieldChangeUsername} label={strings.Username} />
         <TextField className={styles.textField} onChange={this.handleTextFieldChangePassword}
@@ -27,7 +27,7 @@ class LoginPage extends React.Component<{}, {}> {
           <DefaultButton text={strings.Register} href={window.location.origin + "/register"} />
           <PrimaryButton text={strings.Login} onClick={this.loginClick.bind(this)} />
         </div>
-      </div>
+      </form>
     );
   }
 

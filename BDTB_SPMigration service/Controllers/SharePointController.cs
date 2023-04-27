@@ -26,61 +26,75 @@ namespace BDTB_SPMigration.Controllers
         private ClientContext getClientContext(string userLogin, string userPassword, string siteUrl)
         {
             SecureString passw = new SecureString();
-            foreach (char c in userPassword.ToCharArray())
-            {
-                passw.AppendChar(c);
+            try { 
+                if (userPassword != null)
+                {
+                    foreach (char c in userPassword.ToCharArray())
+                    {
+                        passw.AppendChar(c);
+                    }
+                    AuthenticationManager auth = new AuthenticationManager(userLogin, passw);
+                    return auth.GetContext(siteUrl);
+                }
+                else return null;
             }
-            AuthenticationManager auth = new AuthenticationManager(userLogin, passw);
-            return auth.GetContext(siteUrl);
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
 
         [HttpGet]
         public SharePointUser Get(string userLogin, string userPassword, string siteUrl)
         {
-            using (ClientContext ctx = getClientContext(userLogin, userPassword, siteUrl))
-            {
-                ctx.Load(ctx.Web);
-                ctx.ExecuteQuery();
-                ctx.Load(ctx.Web.CurrentUser);
-                ctx.ExecuteQuery();
-                return new SharePointUser
+                using (ClientContext ctx = getClientContext(userLogin, userPassword, siteUrl))
                 {
-                    SiteCollectionName = ctx.Web.Title,
-                    CurrentDate = DateTime.Today,
-                    DisplayName = ctx.Web.CurrentUser.Title,
-                    Email = ctx.Web.CurrentUser.Email,
-                    LoginName = ctx.Web.CurrentUser.LoginName
+                    if (ctx == null) return null;
+                    ctx.Load(ctx.Web);
+                    ctx.ExecuteQuery();
+                    ctx.Load(ctx.Web.CurrentUser);
+                    ctx.ExecuteQuery();
+                    return new SharePointUser
+                    {
+                        SiteCollectionName = ctx.Web.Title,
+                        CurrentDate = DateTime.Today,
+                        DisplayName = ctx.Web.CurrentUser.Title,
+                        Email = ctx.Web.CurrentUser.Email,
+                        LoginName = ctx.Web.CurrentUser.LoginName
+                    };
                 };
-            };
         }
 
         [HttpGet("getSPPages")]
         public List<SharepointPage> GetSPPages(string userLogin, string userPassword, string siteUrl)
         {
-            using (ClientContext ctx = getClientContext(userLogin, userPassword, siteUrl))
-            {
-                List<SharepointPage> sharepointPages = new List<SharepointPage>();
-                ctx.Load(ctx.Web);
-                ctx.ExecuteQuery();
-                ListItemCollection pages = ctx.Web.GetPages();
-
-                ctx.ExecuteQuery();
-                ctx.Load(pages, page => page.Include(
-                    i => i.Id,
-                    i => i.DisplayName
-                    ));
-                ctx.ExecuteQuery();
-
-                foreach (ListItem page in pages)
+                using (ClientContext ctx = getClientContext(userLogin, userPassword, siteUrl))
                 {
-                    SharepointPage spPage = new SharepointPage{
-                        Id = page.Id,
-                        Title = page.DisplayName
-                    };
-                    sharepointPages.Add(spPage);
+                    if (ctx == null) return null;
+                    ctx.Load(ctx.Web);
+                    List<SharepointPage> sharepointPages = new List<SharepointPage>();
+                    ctx.Load(ctx.Web);
+                    ctx.ExecuteQuery();
+                    ListItemCollection pages = ctx.Web.GetPages();
+
+                    ctx.ExecuteQuery();
+                    ctx.Load(pages, page => page.Include(
+                        i => i.Id,
+                        i => i.DisplayName
+                        ));
+                    ctx.ExecuteQuery();
+
+                    foreach (ListItem page in pages)
+                    {
+                        SharepointPage spPage = new SharepointPage
+                        {
+                            Id = page.Id,
+                            Title = page.DisplayName
+                        };
+                        sharepointPages.Add(spPage);
+                    }
+                    return sharepointPages;
                 }
-                return sharepointPages;
-            }
         }
 
         [HttpGet("SPTesting")]
@@ -110,7 +124,7 @@ namespace BDTB_SPMigration.Controllers
 
                     //Console.WriteLine(realpage.LayoutType.ToString()); //gal
 
-                    List <ICanvasSection> sections = realpage.Sections; //REIKIA
+                    List<ICanvasSection> sections = realpage.Sections; //REIKIA
                     Console.WriteLine(sections.Count);
 
                     List<ICanvasColumn> canvasColumns = sections[0].Columns;
