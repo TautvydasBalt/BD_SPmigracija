@@ -1,8 +1,10 @@
+@import '../../global/globalStyles.module.scss';
 .container {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     padding-left: 64px;
+    padding-right: 64px;
     padding-top: 32px;
 }
 
@@ -35,19 +37,7 @@
 .button {
     width: 20px;
     margin: 10px 0px 10px 16px;
-    background-color: #5C2A2A;
-
-    &:hover {
-        background-color: #A76F6F;
-    }
-
-    &:disabled,
-    &[disabled] {
-        border: 1px solid #999999;
-        background-color: #cccccc;
-        color: #666666;
-    }
-
+    @extend .globalButton;
 }
 
 .buttons {

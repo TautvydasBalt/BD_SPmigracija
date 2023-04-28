@@ -6,6 +6,7 @@ import MigrationRequestsPage from './Pages/MigrationRequestsPage/MigrationReques
 import RegisterPage from './Pages/RegisterPage/RegisterPage';
 import ViewRequestPage from './Pages/ViewRequestPage/ViewRequestPage';
 import NewEditRequestPage from './Pages/NewEditRequestPage/NewEditRequestPage';
+import MigrationPage from './Pages/MigrationPage/MigrationPage';
 
 
 const Main = () => {
@@ -18,7 +19,7 @@ const Main = () => {
       <Route path='/viewRequest/:id' element={<ViewRequestPage/>}></Route>
       <Route path='/createRequest' element={<NewEditRequestPage/>}></Route>
       <Route path='/editRequest/:id' element={<NewEditRequestPage/>}></Route>
-
+      <Route path='/migration/:id' element={<MigrationPage/>}></Route>
     </Routes>
   );
 }

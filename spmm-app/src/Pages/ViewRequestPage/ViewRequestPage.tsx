@@ -46,7 +46,7 @@ class ViewRequestPage extends React.Component<{}, ViewRequestState> {
             <PrimaryButton className={styles.button} text={strings.Edit} onClick={this.editMigrationRequest} />
             <PrimaryButton className={styles.button} text={strings.Delete} onClick={this.deleteMigrationRequest} />
             <PrimaryButton className={styles.button} disabled={ViewRequest.status !== "New"} text={strings.Approve} onClick={this.approveMigrationRequest} />
-            <PrimaryButton className={styles.button} disabled={ViewRequest.status === "New"} text={strings.Migrate} onClick={() => { }} />
+            <PrimaryButton className={styles.button} disabled={ViewRequest.status === "New"} text={strings.Migrate} onClick={this.startMigration} />
           </div>
         </div>
       </div>
@@ -74,6 +74,11 @@ class ViewRequestPage extends React.Component<{}, ViewRequestState> {
     let id = getRequestIdFromURL(window.location.href);
     await axios.put(`/approveRequest?id=${id}`);
     window.open(window.location.origin + "/migrationRequests", "_self");
+  }
+
+  private async startMigration() {
+    let id = getRequestIdFromURL(window.location.href);
+    window.open(window.location.origin + "/migration/" + id, "_self");
   }
 
 }

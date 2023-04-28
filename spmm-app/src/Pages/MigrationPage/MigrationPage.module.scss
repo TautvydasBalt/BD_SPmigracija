@@ -1,0 +1,31 @@
+@import '../../global/globalStyles.module.scss';
+
+.pageContainer {
+    padding-top: 32px;
+    padding-left: 64px;
+    padding-right: 64px;
+}
+
+.pageTitle {
+    font-size: 28px;
+}
+
+.Form {
+    display: flex;
+    justify-content: space-between;
+}
+
+.leftForm {
+    margin: 20px;
+    width: 45%;
+}
+
+.rightForm {
+    margin: 20px;
+    width: 45%;
+}
+
+.button {
+    @extend .globalButton;
+    
+}

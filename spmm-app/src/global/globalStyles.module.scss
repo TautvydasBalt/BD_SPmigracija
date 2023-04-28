@@ -2,3 +2,16 @@ $main-bg: #FFFFFF;
 $brown: #5C2A2A;
 $deep-brown: darken($brown, 10%);
 $active-brown: #A76F6F;
+
+.globalButton{
+    background-color: $brown;
+    &:hover {
+        background-color: $active-brown;
+    }
+    &:disabled,
+    &[disabled] {
+        border: 1px solid #999999;
+        background-color: #cccccc;
+        color: #666666;
+    }
+}

@@ -1,9 +1,11 @@
+@import '../../global/globalStyles.module.scss';
 .container {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     padding-left: 64px;
     padding-top: 32px;
+    padding-right: 64px;
 }
 
 .list{
@@ -53,11 +55,7 @@
 .button {
     width: 20px;
     margin: 10px 16px 10px 16px;
-    background-color: #5C2A2A;
-
-    &:hover {
-        background-color: #A76F6F;
-    }
+    @extend .globalButton;
 }
 
 .buttons {

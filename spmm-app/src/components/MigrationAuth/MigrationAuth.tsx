@@ -8,8 +8,8 @@ interface MigrationAuthProps {
     url: string;
     email: string;
     password: string;
-    buttonLabel: string;
-    onClick: any;
+    buttonLabel?: string;
+    onClick?: any;
     destination?: boolean;
     errorMessage?: string;
     sucessMessage?: string;
@@ -39,9 +39,11 @@ class MigrationAuth extends React.Component<MigrationAuthProps, {}> {
                         {this.props.sucessMessage}
                     </MessageBar>
                 )}
-                <div className={styles.buttons}>
-                    <PrimaryButton className={styles.button} text={this.props.buttonLabel} onClick={this.props.onClick} />
-                </div>
+                {this.props.buttonLabel && this.props.onClick && (
+                    <div className={styles.buttons}>
+                        <PrimaryButton className={styles.button} text={this.props.buttonLabel} onClick={this.props.onClick} />
+                    </div>
+                )}
             </div>
         );
     }
