@@ -5,14 +5,12 @@ using PnP.Framework;
 using System.Security;
 using Microsoft.SharePoint.Client;
 using PnP.Core.Model.SharePoint;
-using Google.Protobuf.Collections;
 using BDTB_SPMigration.Models;
 using System.Collections.Generic;
-using System.Linq;
 using PnP.Framework.Modernization.Cache;
 using Microsoft.SharePoint.Client.WebParts;
-using Microsoft.Graph;
 using File = Microsoft.SharePoint.Client.File;
+using System.IO;
 
 namespace BDTB_SPMigration.Controllers
 {
@@ -101,13 +99,53 @@ namespace BDTB_SPMigration.Controllers
         }
 
         [HttpPost("MigratePages")]
-        public string MigratePages(string userLogin, string userPassword, string siteUrl)
+        public string MigratePages(string userLogin, string userPassword, string siteUrl, string siteUrl2)
         {
             using (ClientContext ctxSource = getClientContext(userLogin, userPassword, siteUrl))
             {
-                using (ClientContext ctxDestination = getClientContext(userLogin, userPassword, siteUrl))
+                using (ClientContext ctxDestination = getClientContext(userLogin, userPassword, siteUrl2))
                 {
-                    return "";
+                    ctxSource.Load(ctxSource.Web);
+
+                    // Get the pages from the source site
+                    List pagesList = ctxSource.Web.Lists.GetByTitle("Site Pages");
+                    CamlQuery query = CamlQuery.CreateAllItemsQuery();
+                    ListItemCollection pages = pagesList.GetItems(query);
+                    ctxSource.Load(pages);
+                    ctxSource.ExecuteQuery();
+
+                    // Copy the pages to the destination site
+                    foreach (ListItem page in pages)
+                    {
+                        File pageFile = page.File;
+                        ctxSource.Load(pageFile);
+                        ctxSource.ExecuteQuery();
+
+                        string pageName = pageFile.Name;
+                        Console.WriteLine(pageFile.Name);
+
+                        ClientResult<Stream> stream = pageFile.OpenBinaryStream();
+                        ctxSource.ExecuteQuery();
+
+                        byte[] fileContent;
+                        using (var memoryStream = new MemoryStream())
+                        {
+                            stream.Value.CopyTo(memoryStream);
+                            fileContent = memoryStream.ToArray();
+                        }
+
+                        FileCreationInformation createPage = new FileCreationInformation();
+                        createPage.Content = fileContent;
+                        createPage.Url = pageName;
+                        createPage.Overwrite = true;
+
+                        Folder pagesLibrary = ctxDestination.Web.Lists.GetByTitle("Site Pages").RootFolder;
+                        File newPageFile = pagesLibrary.Files.Add(createPage);
+                        ctxDestination.Load(newPageFile);
+                        ctxDestination.ExecuteQuery();
+                    }
+
+                    return "Pages migration completed successfully.";
                 }
             }
         }
@@ -129,7 +167,7 @@ namespace BDTB_SPMigration.Controllers
                     ));
                 ctx.ExecuteQuery();
 
-                foreach (Microsoft.SharePoint.Client.ListItem page in pages)
+                foreach (ListItem page in pages)
                 {
                     IPage realpage = ctx.Web.LoadClientSidePage(page.DisplayName);
                     ctx.ExecuteQuery();
