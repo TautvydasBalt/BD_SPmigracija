@@ -11,6 +11,9 @@ using PnP.Framework.Modernization.Cache;
 using Microsoft.SharePoint.Client.WebParts;
 using File = Microsoft.SharePoint.Client.File;
 using System.IO;
+using AngleSharp.Text;
+using System.Text.Json.Serialization;
+using Newtonsoft.Json.Linq;
 
 namespace BDTB_SPMigration.Controllers
 {
@@ -26,7 +29,8 @@ namespace BDTB_SPMigration.Controllers
         private ClientContext getClientContext(string userLogin, string userPassword, string siteUrl)
         {
             SecureString passw = new SecureString();
-            try {
+            try
+            {
                 if (userPassword != null)
                 {
                     foreach (char c in userPassword.ToCharArray())
@@ -99,19 +103,19 @@ namespace BDTB_SPMigration.Controllers
         }
 
         [HttpPost("MigratePages")]
-        public string MigratePages(string userLogin, string userPassword, string siteUrl, string siteUrl2)
+        public string MigratePages([FromBody] Migration migration)
         {
-            using (ClientContext ctxSource = getClientContext(userLogin, userPassword, siteUrl))
+            using (ClientContext ctxSource = getClientContext(migration.SourceUsername, migration.SourcePassword, migration.SourceURL))
             {
-                using (ClientContext ctxDestination = getClientContext(userLogin, userPassword, siteUrl2))
+                using (ClientContext ctxDestination = getClientContext(migration.DestinationUsername, migration.DestinationPassword, migration.DestinationURL))
                 {
                     ctxSource.Load(ctxSource.Web);
 
                     // Get the pages from the source site
-                    List pagesList = ctxSource.Web.Lists.GetByTitle("Site Pages");
-                    CamlQuery query = CamlQuery.CreateAllItemsQuery();
-                    ListItemCollection pages = pagesList.GetItems(query);
-                    ctxSource.Load(pages);
+                    //List pagesList = ctxSource.Web.Lists.GetByTitle("Site Pages");
+                    //CamlQuery query = CamlQuery.CreateAllItemsQuery();
+                    ListItemCollection pages = ctxSource.Web.GetPages();
+                    ctxSource.Load(pages, page => page.Include(i => i.DisplayName));
                     ctxSource.ExecuteQuery();
 
                     // Copy the pages to the destination site
@@ -121,9 +125,12 @@ namespace BDTB_SPMigration.Controllers
                         ctxSource.Load(pageFile);
                         ctxSource.ExecuteQuery();
 
-                        string pageName = pageFile.Name;
-                        Console.WriteLine(pageFile.Name);
+                        // Todo: Get the web parts on the page
+                        IPage realpage = ctxSource.Web.LoadClientSidePage(page.DisplayName);
+                        ctxSource.ExecuteQuery();
+                        GetWebpartNames(realpage);
 
+                        string pageName = pageFile.Name;
                         ClientResult<Stream> stream = pageFile.OpenBinaryStream();
                         ctxSource.ExecuteQuery();
 
@@ -150,60 +157,23 @@ namespace BDTB_SPMigration.Controllers
             }
         }
 
-
-        [HttpGet("SPTesting")]
-        public string SPTesting(string userLogin, string userPassword, string siteUrl)
+        private void GetWebpartNames(IPage realpage)
         {
-            using (ClientContext ctx = getClientContext(userLogin, userPassword, siteUrl))
+            List<ICanvasSection> sections = realpage.Sections;
+            foreach (ICanvasSection section in sections)
             {
-                ctx.Load(ctx.Web);
-                ctx.ExecuteQuery();
-                ListItemCollection pages = ctx.Web.GetPages();
-
-                ctx.ExecuteQuery();
-                ctx.Load(pages, page => page.Include(
-                    i => i.Id,
-                    i => i.DisplayName
-                    ));
-                ctx.ExecuteQuery();
-
-                foreach (ListItem page in pages)
+                List<ICanvasControl> controls = section.Controls;
+                foreach (var control in controls)
                 {
-                    IPage realpage = ctx.Web.LoadClientSidePage(page.DisplayName);
-                    ctx.ExecuteQuery();
-
-                    //ctx.Web.CreateSitePage("");
-                    //IPageHeader header = realpage.PageHeader;
-                    //Console.WriteLine(realpage.PnPContext);
-
-                    //Console.WriteLine(realpage.LayoutType.ToString()); //gal
-
-                    List<ICanvasSection> sections = realpage.Sections; //REIKIA
-                    Console.WriteLine(sections.Count);
-
-                    List<ICanvasColumn> canvasColumns = sections[0].Columns;
-                    Console.WriteLine(canvasColumns.Count);
-
-                    List<ICanvasControl> controls = sections[0].Controls;//Reikia
-                    Console.WriteLine(controls.Count);
-
-                    foreach (var control in controls)
+                    IPageWebPart webPart = (IPageWebPart)control;
+                    Console.WriteLine("Title: " + webPart.Title);
+                    if (webPart.Title == "List")
                     {
-                        IPageWebPart webPart = (IPageWebPart)control;
-                        Console.WriteLine("Title: " + webPart.Title);
-                        Console.WriteLine("Description: " + webPart.Description);
-                        Console.WriteLine("WebPartId: " + webPart.WebPartId);
-                        Console.WriteLine("Properties: " + webPart.Properties);
-                        Console.WriteLine("DynamicDataValues: " + webPart.DynamicDataValues);
-                        Console.WriteLine("WebPartData: " + webPart.WebPartData);
+                        dynamic data = JObject.Parse(webPart.PropertiesJson);
+                        Console.WriteLine(data.webRelativeListUrl);
                     }
-
-
                 }
-
-                return "";
             }
-
         }
     }
 
