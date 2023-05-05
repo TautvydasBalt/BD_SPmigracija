@@ -14,6 +14,10 @@ using System.IO;
 using AngleSharp.Text;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json.Linq;
+using System.Linq;
+using PnP.Framework.Entities;
+using MySqlX.XDevAPI.Relational;
+using System.Data.Common;
 
 namespace BDTB_SPMigration.Controllers
 {
@@ -112,8 +116,6 @@ namespace BDTB_SPMigration.Controllers
                     ctxSource.Load(ctxSource.Web);
 
                     // Get the pages from the source site
-                    //List pagesList = ctxSource.Web.Lists.GetByTitle("Site Pages");
-                    //CamlQuery query = CamlQuery.CreateAllItemsQuery();
                     ListItemCollection pages = ctxSource.Web.GetPages();
                     ctxSource.Load(pages, page => page.Include(i => i.DisplayName));
                     ctxSource.ExecuteQuery();
@@ -125,11 +127,10 @@ namespace BDTB_SPMigration.Controllers
                         ctxSource.Load(pageFile);
                         ctxSource.ExecuteQuery();
 
-                        // Todo: Get the web parts on the page
                         IPage realpage = ctxSource.Web.LoadClientSidePage(page.DisplayName);
                         ctxSource.ExecuteQuery();
-                        GetWebpartNames(realpage);
-
+                        MigratePageLists(realpage, ctxSource, ctxDestination);
+                           
                         string pageName = pageFile.Name;
                         ClientResult<Stream> stream = pageFile.OpenBinaryStream();
                         ctxSource.ExecuteQuery();
@@ -157,7 +158,7 @@ namespace BDTB_SPMigration.Controllers
             }
         }
 
-        private void GetWebpartNames(IPage realpage)
+        private void MigratePageLists(IPage realpage, ClientContext ctxSource, ClientContext ctxDest)
         {
             List<ICanvasSection> sections = realpage.Sections;
             foreach (ICanvasSection section in sections)
@@ -166,11 +167,84 @@ namespace BDTB_SPMigration.Controllers
                 foreach (var control in controls)
                 {
                     IPageWebPart webPart = (IPageWebPart)control;
-                    Console.WriteLine("Title: " + webPart.Title);
                     if (webPart.Title == "List")
                     {
                         dynamic data = JObject.Parse(webPart.PropertiesJson);
-                        Console.WriteLine(data.webRelativeListUrl);
+                        string path = data.webRelativeListUrl;
+
+                        // Get the list from the source site
+                        List list = ctxSource.Web.Lists.GetByTitle(path.Split('/').Last());
+                        ctxSource.Load(list);
+                        ctxSource.ExecuteQuery();
+
+                        // Create a new list on the destination site
+                        ListCreationInformation createList = new ListCreationInformation();
+                        createList.Description = list.Description;
+                        createList.TemplateType = list.BaseTemplate;
+                        createList.Title = list.Title;
+                        List newList = ctxDest.Web.Lists.Add(createList);
+                        ctxDest.Load(newList);
+                        ctxDest.ExecuteQuery();
+
+                        // Copy the list columns
+                        ctxSource.Load(list, l => l.Fields);
+                        ctxSource.ExecuteQuery();
+
+                        List<string> columnList = new List<string>();
+                        foreach (Field column in list.Fields)
+                        {
+                            if (!column.ReadOnlyField && column.InternalName != "Attachments") columnList.Add(column.InternalName);
+                            if (!column.ReadOnlyField && !newList.FieldExistsByName(column.InternalName))
+                            {
+                                ctxSource.Load(column, f => f.Title, f => f.ReadOnlyField, f => f.FieldTypeKind, f => f.InternalName, f => f.SchemaXmlWithResourceTokens);
+                                ctxSource.ExecuteQuery();
+
+                                // Create a new column in the destination list
+                                FieldCreationInformation fieldInfo = new FieldCreationInformation(column.FieldTypeKind.ToString());
+                                fieldInfo.DisplayName = column.Title;
+                                fieldInfo.InternalName = column.InternalName;
+
+                                // Add the new field to the destination list
+                                Field newField = newList.Fields.AddFieldAsXml(column.SchemaXmlWithResourceTokens, true, AddFieldOptions.AddFieldInternalNameHint);
+                                ctxDest.Load(newField);
+                                ctxDest.ExecuteQuery();
+                            }
+                        }
+
+                        // Copy the list items to the new list
+                        CamlQuery query = CamlQuery.CreateAllItemsQuery();
+                        ListItemCollection items = list.GetItems(query);
+                        ctxSource.Load(items);
+                        ctxSource.ExecuteQuery();
+                        int limit = 100;
+                        int count = 0;
+
+                        foreach (ListItem item in items)
+                        {
+                            ListItemCreationInformation createItem = new ListItemCreationInformation();
+                            createItem.UnderlyingObjectType = item.FileSystemObjectType;
+                            ListItem newItem = newList.AddItem(createItem);
+
+                            // Copy the field values from the source item to the new item
+                            foreach (var field in item.FieldValues)
+                            {
+                                if (columnList.Contains(field.Key) && field.Value != null)
+                                {
+                                    //Console.WriteLine("KEY: " + field.Key + " VALUE: " + field.Value);
+                                    newItem[field.Key] = field.Value; 
+                                }
+                            }
+
+                            newItem.Update();
+                            count++;
+
+                            if (count > limit)
+                            {
+                                ctxDest.ExecuteQuery();
+                                count = 0;
+                            }
+                        }
+                        ctxDest.ExecuteQuery();
                     }
                 }
             }
