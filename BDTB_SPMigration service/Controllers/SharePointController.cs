@@ -115,6 +115,9 @@ namespace BDTB_SPMigration.Controllers
                 {
                     ctxSource.Load(ctxSource.Web);
 
+                    List<string> pageNames = new List<string>();
+                    foreach (SharepointPage spPage in migration.SharepointPages) pageNames.Add(spPage.Title);
+
                     // Get the pages from the source site
                     ListItemCollection pages = ctxSource.Web.GetPages();
                     ctxSource.Load(pages, page => page.Include(i => i.DisplayName));
@@ -123,34 +126,38 @@ namespace BDTB_SPMigration.Controllers
                     // Copy the pages to the destination site
                     foreach (ListItem page in pages)
                     {
-                        File pageFile = page.File;
-                        ctxSource.Load(pageFile);
-                        ctxSource.ExecuteQuery();
-
-                        IPage realpage = ctxSource.Web.LoadClientSidePage(page.DisplayName);
-                        ctxSource.ExecuteQuery();
-                        MigratePageLists(realpage, ctxSource, ctxDestination);
-                           
-                        string pageName = pageFile.Name;
-                        ClientResult<Stream> stream = pageFile.OpenBinaryStream();
-                        ctxSource.ExecuteQuery();
-
-                        byte[] fileContent;
-                        using (var memoryStream = new MemoryStream())
+                        Console.WriteLine(page.DisplayName);
+                        if (pageNames.Contains(page.DisplayName))
                         {
-                            stream.Value.CopyTo(memoryStream);
-                            fileContent = memoryStream.ToArray();
+                            File pageFile = page.File;
+                            ctxSource.Load(pageFile);
+                            ctxSource.ExecuteQuery();
+
+                            IPage realpage = ctxSource.Web.LoadClientSidePage(page.DisplayName);
+                            ctxSource.ExecuteQuery();
+                            MigratePageLists(realpage, ctxSource, ctxDestination);
+
+                            string pageName = pageFile.Name;
+                            ClientResult<Stream> stream = pageFile.OpenBinaryStream();
+                            ctxSource.ExecuteQuery();
+
+                            byte[] fileContent;
+                            using (var memoryStream = new MemoryStream())
+                            {
+                                stream.Value.CopyTo(memoryStream);
+                                fileContent = memoryStream.ToArray();
+                            }
+
+                            FileCreationInformation createPage = new FileCreationInformation();
+                            createPage.Content = fileContent;
+                            createPage.Url = pageName;
+                            createPage.Overwrite = true;
+
+                            Folder pagesLibrary = ctxDestination.Web.Lists.GetByTitle("Site Pages").RootFolder;
+                            File newPageFile = pagesLibrary.Files.Add(createPage);
+                            ctxDestination.Load(newPageFile);
+                            ctxDestination.ExecuteQuery();
                         }
-
-                        FileCreationInformation createPage = new FileCreationInformation();
-                        createPage.Content = fileContent;
-                        createPage.Url = pageName;
-                        createPage.Overwrite = true;
-
-                        Folder pagesLibrary = ctxDestination.Web.Lists.GetByTitle("Site Pages").RootFolder;
-                        File newPageFile = pagesLibrary.Files.Add(createPage);
-                        ctxDestination.Load(newPageFile);
-                        ctxDestination.ExecuteQuery();
                     }
 
                     return "Pages migration completed successfully.";
@@ -231,7 +238,7 @@ namespace BDTB_SPMigration.Controllers
                                 if (columnList.Contains(field.Key) && field.Value != null)
                                 {
                                     //Console.WriteLine("KEY: " + field.Key + " VALUE: " + field.Value);
-                                    newItem[field.Key] = field.Value; 
+                                    newItem[field.Key] = field.Value;
                                 }
                             }
 

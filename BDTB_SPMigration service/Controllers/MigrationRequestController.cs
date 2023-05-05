@@ -256,6 +256,50 @@ namespace BDTB_SPMigration.Controllers
             }
         }
 
+        [HttpPut("markMigrationStarted")]
+        public bool markMigrationStarted(int id)
+        {
+            using MySqlConnection connection = new MySqlConnection(connectionString);
+            try
+            {
+                connection.Open();
+                string query = "UPDATE migration_request SET status = @status WHERE ID = @id";
+                using MySqlCommand command = new MySqlCommand(query, connection);
+                command.Parameters.AddWithValue("@id", id);
+                command.Parameters.AddWithValue("@status", "Started");
+                int rowsAffected = command.ExecuteNonQuery();
+                if (rowsAffected > 0) return true;
+                else return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+        }
+
+        [HttpPut("markMigrationCompleted")]
+        public bool markMigrationCompleted(int id)
+        {
+            using MySqlConnection connection = new MySqlConnection(connectionString);
+            try
+            {
+                connection.Open();
+                string query = "UPDATE migration_request SET status = @status WHERE ID = @id";
+                using MySqlCommand command = new MySqlCommand(query, connection);
+                command.Parameters.AddWithValue("@id", id);
+                command.Parameters.AddWithValue("@status", "Completed");
+                int rowsAffected = command.ExecuteNonQuery();
+                if (rowsAffected > 0) return true;
+                else return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+        }
+
         public bool deleteAllRequestUsers(MySqlConnection connection, int id)
         {
             string query = "DELETE FROM assigned_users WHERE ID_request = @id";

@@ -1,4 +1,6 @@
-﻿namespace BDTB_SPMigration.Models
+﻿using System.Collections.Generic;
+
+namespace BDTB_SPMigration.Models
 {
     public class Migration
     {
@@ -8,5 +10,6 @@
         public string DestinationURL { get; set; }
         public string DestinationUsername { get; set; }
         public string DestinationPassword { get; set; }
+        public List<SharepointPage> SharepointPages { get; set; }
     }
 }
