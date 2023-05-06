@@ -7,7 +7,7 @@ import { showAssignedUsersNames, showData } from '../../global/dataHandler';
 import strings from '../../loc/strings';
 
 class MigrationRequestsHistoryPage extends React.Component<{},{ migrations: any }> {
-  
+
   constructor(props: {}) {
     super(props);
 
@@ -46,15 +46,16 @@ class MigrationRequestsHistoryPage extends React.Component<{},{ migrations: any 
         <div className={styles.sideBar}>
           <div className={styles.status}>{"Status: " + showData(item.status)} </div>
           <div className={styles.buttons}>
-            <PrimaryButton className={styles.button} text={strings.Open} onClick={() => this.openRequest(item.id)} />
+            <PrimaryButton className={styles.button} text={strings.Delete} onClick={() => this.deleteRequest(item.id)} />
           </div>
         </div>
       </div>
     ) : null;
   };
 
-  private async openRequest(id: string) {
-    window.open(window.location.origin + "/viewRequest/" + id, "_self");
+  private async deleteRequest(id: any) {
+    await axios.delete(`/deleteRequest?id=${id}`);
+    window.open(window.location.origin + "/migrationRequestsHistory", "_self");
   }
 
   private async getMigrationHistory() {

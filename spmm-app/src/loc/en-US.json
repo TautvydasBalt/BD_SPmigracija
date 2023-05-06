@@ -23,6 +23,7 @@
     "errSource": "Cannot connect to source. Check URL and credentials.",
     "errDest": "Cannot connect to destination. Check URL and credentials.",
     "succDest": "Connection successful",
-    "CheckContinue": "Check connections and continue"
+    "CheckContinue": "Check connections and continue",
+    "Ok": "Ok"
 }
   

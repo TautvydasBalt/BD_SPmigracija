@@ -27,5 +27,18 @@
 
 .button {
     @extend .globalButton;
-    
+
+}
+
+.itemData {
+    font-size: 18px;
+    padding: 20px 0px 0px 0px;
+    text-overflow: ellipsis;
+}
+
+.modal div {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
 }

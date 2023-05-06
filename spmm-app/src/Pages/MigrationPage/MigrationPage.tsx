@@ -1,11 +1,11 @@
-import { PrimaryButton, Separator } from '@fluentui/react';
+import { Modal, PrimaryButton, ProgressIndicator, Separator } from '@fluentui/react';
 import React from 'react';
 import strings from '../../loc/strings';
 import styles from './MigrationPage.module.scss';
 import axios from 'axios';
 import NavBar from '../../components/NavBar/NavBar';
 import MigrationAuth from '../../components/MigrationAuth/MigrationAuth';
-import { getRequestIdFromURL } from '../../global/dataHandler';
+import { getRequestIdFromURL, showAssignedPageTitles } from '../../global/dataHandler';
 
 interface MigrationState {
     [key: string]: MigrationState[keyof MigrationState];
@@ -22,6 +22,10 @@ interface MigrationState {
     SPPasswordDest: string;
     errDest: string;
     succDest: string;
+
+    sharepointPages: any[];
+    migrating: boolean;
+    modalMessage: string;
 }
 
 
@@ -41,6 +45,9 @@ class MigrationPage extends React.Component<{}, MigrationState> {
             errDest: "",
             succSource: "",
             succDest: "",
+            sharepointPages: [],
+            migrating: false,
+            modalMessage: "",
         }
     }
 
@@ -55,6 +62,7 @@ class MigrationPage extends React.Component<{}, MigrationState> {
                 <NavBar />
                 <form className={styles.pageContainer}>
                     <div className={styles.pageTitle}> {this.state.RequestName} </div>
+                    <div className={styles.itemData}>{"Migrating the following pages: " + showAssignedPageTitles(this.state.sharepointPages)}</div>
                     <div className={styles.Form}>
                         <div className={styles.leftForm}>
                             <MigrationAuth
@@ -81,6 +89,12 @@ class MigrationPage extends React.Component<{}, MigrationState> {
                     </div>
                     <Separator />
                     <PrimaryButton className={styles.button} text={strings.CheckContinue} onClick={this.onContinue.bind(this)}></PrimaryButton>
+                    {this.state.migrating ? <ProgressIndicator label="Migrating pages..." description="This might take a while" /> : ""}
+                    <Modal className={styles.modal} isOpen={this.state.modalMessage ? true : false}>
+                        <div className={styles.itemData} >{this.state.modalMessage}</div>
+                        <PrimaryButton className={styles.button} text={strings.Ok} onClick={() => { window.open(window.location.origin + "/migrationRequests", "_self"); }} />
+                    </Modal>
+
                 </form>
             </div >
         );
@@ -94,6 +108,7 @@ class MigrationPage extends React.Component<{}, MigrationState> {
                 RequestName: data.requestName,
                 MigrationSource: data.sourceURL,
                 MigrationDest: data.destinationURL,
+                sharepointPages: data.sharepointPages,
             })
         }
     }
@@ -137,12 +152,50 @@ class MigrationPage extends React.Component<{}, MigrationState> {
         }
     }
 
-    private async onContinue() {
-        let sconn = await this.checkConnectionSource();
-        let dconn = await this.checkConnectionDest();
+    private async markMigrationStarted() {
+        let id = getRequestIdFromURL(window.location.href);
+        await axios.put(`/markMigrationStarted?id=${id}`);
+    }
 
-        if (sconn && dconn) {
-            console.log("Both Connections are valid");
+    private async markMigrationCompleted() {
+        let id = getRequestIdFromURL(window.location.href);
+        await axios.put(`/markMigrationCompleted?id=${id}`);
+    }
+
+    private async markMigrationError() {
+        let id = getRequestIdFromURL(window.location.href);
+        await axios.put(`/markMigrationError?id=${id}`);
+    }
+
+    private async onContinue() {
+        let sconn = this.checkConnectionSource();
+        let dconn = this.checkConnectionDest();
+
+        if (await sconn && await dconn) {
+            this.markMigrationStarted();
+            this.setState({ migrating: true });
+            let bodyParameters = {
+                sourceURL: this.state.MigrationSource,
+                sourceUsername: this.state.SPEmailSource,
+                sourcePassword: this.state.SPPasswordSource,
+                destinationURL: this.state.MigrationDest,
+                destinationUsername: this.state.SPEmailDest,
+                destinationPassword: this.state.SPPasswordDest,
+                sharepointPages: this.state.sharepointPages
+            }
+            axios.post("/SharePoint/MigratePages", bodyParameters).then((response) => {
+                const data = response.data;
+                if (data) {
+                    console.log(data);
+                    this.markMigrationCompleted();
+                    this.setState({ modalMessage: "Migration completed successfuly. " })
+                    this.setState({ migrating: false });
+                }
+            }).catch(() => {
+                this.markMigrationError();
+                console.log("An Error Ocurred");
+                this.setState({ modalMessage: "An Error Ocurred during migration. " })
+            });
         }
     }
 
