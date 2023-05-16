@@ -3,7 +3,7 @@ import React from 'react';
 import Navbar from '../../components/NavBar/NavBar';
 import styles from './MigrationRequestsHistoryPage.module.scss';
 import axios from 'axios';
-import { showAssignedUsersNames, showData } from '../../global/dataHandler';
+import { showData } from '../../global/dataHandler';
 import strings from '../../loc/strings';
 
 class MigrationRequestsHistoryPage extends React.Component<{},{ migrations: any }> {
@@ -38,23 +38,23 @@ class MigrationRequestsHistoryPage extends React.Component<{},{ migrations: any 
     return item ? (
       <div className={styles.itemCell} data-is-focusable={true}>
         <div className={styles.itemContent}>
-          <div className={styles.itemName}>{showData(item.requestName)}</div>
-          <div className={styles.itemData}>{"Assigned To: " + showAssignedUsersNames(item.assignedUsers)}</div>
+          <div className={styles.itemName}>{showData(item.title)}</div>
           <div className={styles.itemData}>{"Source URL: " + showData(item.sourceURL)}</div>
           <div className={styles.itemData}>{"Destination URL: " + showData(item.destinationURL)}</div>
+          <div className={styles.itemData}>{"Migration date: " + showData(item.migrationDate)}</div>
         </div>
         <div className={styles.sideBar}>
           <div className={styles.status}>{"Status: " + showData(item.status)} </div>
           <div className={styles.buttons}>
-            <PrimaryButton className={styles.button} text={strings.Delete} onClick={() => this.deleteRequest(item.id)} />
+            <PrimaryButton className={styles.button} text={strings.Delete} onClick={() => this.deleteMigrationHistory(item.id)} />
           </div>
         </div>
       </div>
     ) : null;
   };
 
-  private async deleteRequest(id: any) {
-    await axios.delete(`/deleteRequest?id=${id}`);
+  private async deleteMigrationHistory(id: any) {
+    await axios.delete(`/deleteMigrationHistory?id=${id}`);
     window.open(window.location.origin + "/migrationRequestsHistory", "_self");
   }
 

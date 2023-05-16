@@ -152,27 +152,11 @@ class MigrationPage extends React.Component<{}, MigrationState> {
         }
     }
 
-    private async markMigrationStarted() {
-        let id = getRequestIdFromURL(window.location.href);
-        await axios.put(`/markMigrationStarted?id=${id}`);
-    }
-
-    private async markMigrationCompleted() {
-        let id = getRequestIdFromURL(window.location.href);
-        await axios.put(`/markMigrationCompleted?id=${id}`);
-    }
-
-    private async markMigrationError() {
-        let id = getRequestIdFromURL(window.location.href);
-        await axios.put(`/markMigrationError?id=${id}`);
-    }
-
     private async onContinue() {
         let sconn = this.checkConnectionSource();
         let dconn = this.checkConnectionDest();
 
         if (await sconn && await dconn) {
-            this.markMigrationStarted();
             this.setState({ migrating: true });
             let bodyParameters = {
                 sourceURL: this.state.MigrationSource,
@@ -187,18 +171,34 @@ class MigrationPage extends React.Component<{}, MigrationState> {
                 const data = response.data;
                 if (data) {
                     console.log(data);
-                    this.markMigrationCompleted();
+                    this.archiveMigration("Completed");
                     this.setState({ modalMessage: "Migration completed successfuly. " })
                     this.setState({ migrating: false });
                 }
             }).catch(() => {
-                this.markMigrationError();
+                this.archiveMigration("Error");
                 console.log("An Error Ocurred");
                 this.setState({ modalMessage: "An Error Ocurred during migration. " })
             });
         }
     }
 
+    private archiveMigration(status: string) {
+        let dateTime = new Date();
+        console.log(dateTime);
+        try {
+            let bodyParameters = {
+                title: this.state.RequestName,
+                sourceURL: this.state.MigrationSource,
+                destinationURL: this.state.MigrationDest,
+                migrationDate: dateTime,
+                status: status
+            };
+            axios.post("/archiveMigration", bodyParameters);
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
 }
 

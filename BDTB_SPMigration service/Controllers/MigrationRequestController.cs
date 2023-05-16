@@ -42,35 +42,6 @@ namespace BDTB_SPMigration.Controllers
             return requests;
         }
 
-        [HttpGet("migrationHistory")]
-        public List<MigrationRequest> GetMigrationHistory()
-        {
-            List<MigrationRequest> requests = new List<MigrationRequest>();
-            using MySqlConnection connection = new MySqlConnection(connectionString);
-            connection.Open();
-
-            string query = "SELECT ID, request_name, source_url, destination_url, status FROM migration_request WHERE status = @started OR status = @completed OR status = @error";
-            using MySqlCommand command = new MySqlCommand(query, connection);
-            command.Parameters.AddWithValue("@started", "Started");
-            command.Parameters.AddWithValue("@completed", "Completed");
-            command.Parameters.AddWithValue("@error", "Error");
-            using MySqlDataReader reader = command.ExecuteReader();
-            while (reader.Read())
-            {
-
-                requests.Add(new MigrationRequest
-                {
-                    ID = reader.GetInt32(0),
-                    RequestName = reader.GetString(1),
-                    SourceURL = reader.GetString(2),
-                    DestinationURL = reader.GetString(3),
-                    Status = reader.GetString(4),
-                    AssignedUsers = getAssignedUsers(reader.GetInt32(0)),
-                });
-            }
-            return requests;
-        }
-
         private List<User> getAssignedUsers(int id)
         {
             List<User> users = new List<User>();
@@ -247,73 +218,6 @@ namespace BDTB_SPMigration.Controllers
                 command.Parameters.AddWithValue("@id", id);
                 int rowsAffected = command.ExecuteNonQuery();
 
-                if (rowsAffected > 0) return true;
-                else return false;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return false;
-            }
-        }
-
-        [HttpPut("markMigrationStarted")]
-        public bool markMigrationStarted(int id)
-        {
-            using MySqlConnection connection = new MySqlConnection(connectionString);
-            try
-            {
-                connection.Open();
-                string query = "UPDATE migration_request SET status = @status WHERE ID = @id";
-                using MySqlCommand command = new MySqlCommand(query, connection);
-                command.Parameters.AddWithValue("@id", id);
-                command.Parameters.AddWithValue("@status", "Started");
-                int rowsAffected = command.ExecuteNonQuery();
-                if (rowsAffected > 0) return true;
-                else return false;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return false;
-            }
-        }
-
-        [HttpPut("markMigrationCompleted")]
-        public bool markMigrationCompleted(int id)
-        {
-            using MySqlConnection connection = new MySqlConnection(connectionString);
-            try
-            {
-                connection.Open();
-                string query = "UPDATE migration_request SET status = @status WHERE ID = @id";
-                using MySqlCommand command = new MySqlCommand(query, connection);
-                command.Parameters.AddWithValue("@id", id);
-                command.Parameters.AddWithValue("@status", "Completed");
-                int rowsAffected = command.ExecuteNonQuery();
-                if (rowsAffected > 0) return true;
-                else return false;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return false;
-            }
-        }
-
-
-        [HttpPut("markMigrationError")]
-        public bool markMigrationError(int id)
-        {
-            using MySqlConnection connection = new MySqlConnection(connectionString);
-            try
-            {
-                connection.Open();
-                string query = "UPDATE migration_request SET status = @status WHERE ID = @id";
-                using MySqlCommand command = new MySqlCommand(query, connection);
-                command.Parameters.AddWithValue("@id", id);
-                command.Parameters.AddWithValue("@status", "Error");
-                int rowsAffected = command.ExecuteNonQuery();
                 if (rowsAffected > 0) return true;
                 else return false;
             }

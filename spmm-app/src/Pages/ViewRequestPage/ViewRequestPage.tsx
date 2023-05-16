@@ -73,7 +73,7 @@ class ViewRequestPage extends React.Component<{}, ViewRequestState> {
   private async approveMigrationRequest() {
     let id = getRequestIdFromURL(window.location.href);
     await axios.put(`/approveRequest?id=${id}`);
-    window.open(window.location.origin + "/migrationRequests", "_self");
+    window.open(window.location.href, "_self");
   }
 
   private async startMigration() {
