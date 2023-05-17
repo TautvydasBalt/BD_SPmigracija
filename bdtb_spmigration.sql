@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 07, 2023 at 02:18 PM
+-- Generation Time: May 16, 2023 at 10:20 PM
 -- Server version: 10.4.27-MariaDB
 -- PHP Version: 8.2.0
 
@@ -47,6 +47,21 @@ CREATE TABLE `assigned_users` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `migration_history`
+--
+
+CREATE TABLE `migration_history` (
+  `ID` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `source_url` varchar(255) NOT NULL,
+  `destination_url` varchar(255) NOT NULL,
+  `migration_date` datetime NOT NULL,
+  `status` enum('Completed','Error') NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `migration_request`
 --
 
@@ -55,7 +70,7 @@ CREATE TABLE `migration_request` (
   `request_name` varchar(255) NOT NULL,
   `destination_url` varchar(255) NOT NULL,
   `source_url` varchar(255) NOT NULL,
-  `status` enum('New','Approved','Started','Completed','Error') NOT NULL
+  `status` enum('New','Approved') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -89,6 +104,14 @@ ALTER TABLE `assigned_users`
   ADD KEY `ID_request` (`ID_request`);
 
 --
+-- Indexes for table `migration_history`
+--
+ALTER TABLE `migration_history`
+  ADD PRIMARY KEY (`ID`),
+  ADD KEY `ID` (`ID`),
+  ADD KEY `ID_2` (`ID`);
+
+--
 -- Indexes for table `migration_request`
 --
 ALTER TABLE `migration_request`
@@ -104,6 +127,12 @@ ALTER TABLE `user`
 --
 -- AUTO_INCREMENT for dumped tables
 --
+
+--
+-- AUTO_INCREMENT for table `migration_history`
+--
+ALTER TABLE `migration_history`
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `migration_request`
