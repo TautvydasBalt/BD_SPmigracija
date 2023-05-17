@@ -25,6 +25,8 @@ namespace BDTB_SPMigration.Controllers
     [Route("[controller]")]
     public class SharePointController : ControllerBase
     {
+        public static string lastStatus;
+
         private readonly ILogger<SharePointController> _logger;
         public SharePointController(ILogger<SharePointController> logger)
         {
@@ -126,6 +128,7 @@ namespace BDTB_SPMigration.Controllers
                     // Copy the pages to the destination site
                     foreach (ListItem page in pages)
                     {
+                        lastStatus = "Migrating " + page.DisplayName + " page.";
                         Console.WriteLine(page.DisplayName);
                         if (pageNames.Contains(page.DisplayName))
                         {
@@ -183,7 +186,7 @@ namespace BDTB_SPMigration.Controllers
                         List list = ctxSource.Web.Lists.GetByTitle(path.Split('/').Last());
                         ctxSource.Load(list);
                         ctxSource.ExecuteQuery();
-
+                        lastStatus = "Migrating " + list.Title + " list data.";
                         // Create a new list on the destination site
                         ListCreationInformation createList = new ListCreationInformation();
                         createList.Description = list.Description;
@@ -256,28 +259,11 @@ namespace BDTB_SPMigration.Controllers
                 }
             }
         }
-    }
 
-    //[HttpGet("getSharepointLists")]
-    //public List<SharepointList> GetSharepointLists(string userLogin, string userPassword, string siteUrl)
-    //{
-    //    using (ClientContext ctx = getClientContext(userLogin, userPassword, siteUrl))
-    //    {
-    //        ctx.Load(ctx.Web);
-    //        ctx.ExecuteQuery();
-    //        ctx.Load(ctx.Web.Lists, lists => lists.Include(list => list.Id, list => list.Title));
-    //        ctx.ExecuteQuery();
-    //        List<SharepointList> data = new List<SharepointList>();
-    //        foreach (var list in ctx.Web.Lists)
-    //        {
-    //            SharepointList splist = new SharepointList
-    //            {
-    //                Id = list.Id,
-    //                Title = list.Title,
-    //            };
-    //            data.Add(splist);
-    //        }
-    //        return data;
-    //    }
-    //}
+        [HttpGet("getStatus")]
+        public string getStatus()
+        {
+            return lastStatus;
+        }
+    }
 }

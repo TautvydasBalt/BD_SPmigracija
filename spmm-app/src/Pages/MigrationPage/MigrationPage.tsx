@@ -26,6 +26,8 @@ interface MigrationState {
     sharepointPages: any[];
     migrating: boolean;
     modalMessage: string;
+
+    migrationStatusMessage: string;
 }
 
 
@@ -48,6 +50,7 @@ class MigrationPage extends React.Component<{}, MigrationState> {
             sharepointPages: [],
             migrating: false,
             modalMessage: "",
+            migrationStatusMessage: "",
         }
     }
 
@@ -88,8 +91,8 @@ class MigrationPage extends React.Component<{}, MigrationState> {
                         </div>
                     </div>
                     <Separator />
-                    <PrimaryButton className={styles.button} text={strings.CheckContinue} onClick={this.onContinue.bind(this)}></PrimaryButton>
-                    {this.state.migrating ? <ProgressIndicator label="Migrating pages..." description="This might take a while" /> : ""}
+                    <PrimaryButton disabled={this.state.migrating} className={styles.button} text={strings.CheckContinue} onClick={this.onContinue.bind(this)}></PrimaryButton>
+                    {this.state.migrating ? <ProgressIndicator label="Migration is in progress." description={this.state.migrationStatusMessage} /> : ""}
                     <Modal className={styles.modal} isOpen={this.state.modalMessage ? true : false}>
                         <div className={styles.itemData} >{this.state.modalMessage}</div>
                         <PrimaryButton className={styles.button} text={strings.Ok} onClick={() => { window.open(window.location.origin + "/migrationRequests", "_self"); }} />
@@ -158,6 +161,7 @@ class MigrationPage extends React.Component<{}, MigrationState> {
 
         if (await sconn && await dconn) {
             this.setState({ migrating: true });
+            const interval = setInterval(this.getMigrationStatusMessage.bind(this), 1000);
             let bodyParameters = {
                 sourceURL: this.state.MigrationSource,
                 sourceUsername: this.state.SPEmailSource,
@@ -174,11 +178,13 @@ class MigrationPage extends React.Component<{}, MigrationState> {
                     this.archiveMigration("Completed");
                     this.setState({ modalMessage: "Migration completed successfuly. " })
                     this.setState({ migrating: false });
+                    clearInterval(interval);
                 }
             }).catch(() => {
                 this.archiveMigration("Error");
                 console.log("An Error Ocurred");
                 this.setState({ modalMessage: "An Error Ocurred during migration. " })
+                clearInterval(interval);
             });
         }
     }
@@ -200,6 +206,14 @@ class MigrationPage extends React.Component<{}, MigrationState> {
         }
     }
 
+    private async getMigrationStatusMessage() {
+        try {
+            const response = await axios.get("/SharePoint/getStatus")
+            this.setState({ migrationStatusMessage: response.data });
+        } catch (error) {
+            console.log(error);
+        }
+    }
 }
 
 export default MigrationPage;
