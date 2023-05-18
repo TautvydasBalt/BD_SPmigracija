@@ -24,6 +24,7 @@
     "errDest": "Cannot connect to destination. Check URL and credentials.",
     "succDest": "Connection successful",
     "CheckContinue": "Check connections and continue",
-    "Ok": "Ok"
+    "Ok": "Ok",
+    "downLogs": "Download Logs"
 }
   

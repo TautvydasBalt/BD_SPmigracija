@@ -18,6 +18,9 @@ using System.Linq;
 using PnP.Framework.Entities;
 using MySqlX.XDevAPI.Relational;
 using System.Data.Common;
+using System.Text;
+using Microsoft.AspNetCore.Http.HttpResults;
+using System.Reflection;
 
 namespace BDTB_SPMigration.Controllers
 {
@@ -111,6 +114,7 @@ namespace BDTB_SPMigration.Controllers
         [HttpPost("MigratePages")]
         public string MigratePages([FromBody] Migration migration)
         {
+            string logContent = "START\n";
             using (ClientContext ctxSource = getClientContext(migration.SourceUsername, migration.SourcePassword, migration.SourceURL))
             {
                 using (ClientContext ctxDestination = getClientContext(migration.DestinationUsername, migration.DestinationPassword, migration.DestinationURL))
@@ -128,17 +132,18 @@ namespace BDTB_SPMigration.Controllers
                     // Copy the pages to the destination site
                     foreach (ListItem page in pages)
                     {
-                        lastStatus = "Migrating " + page.DisplayName + " page.";
-                        Console.WriteLine(page.DisplayName);
                         if (pageNames.Contains(page.DisplayName))
                         {
+                            lastStatus = "Migrating " + page.DisplayName + " page.";
+                            logContent += getLogContent(lastStatus);
+
                             File pageFile = page.File;
                             ctxSource.Load(pageFile);
                             ctxSource.ExecuteQuery();
 
                             IPage realpage = ctxSource.Web.LoadClientSidePage(page.DisplayName);
                             ctxSource.ExecuteQuery();
-                            MigratePageLists(realpage, ctxSource, ctxDestination);
+                            MigratePageLists(realpage, ctxSource, ctxDestination,ref logContent);
 
                             string pageName = pageFile.Name;
                             ClientResult<Stream> stream = pageFile.OpenBinaryStream();
@@ -162,13 +167,15 @@ namespace BDTB_SPMigration.Controllers
                             ctxDestination.ExecuteQuery();
                         }
                     }
-
-                    return "Pages migration completed successfully.";
+                    logContent += "END\n";
+                    string fileName = getCurrentDateTimeForFileString() + "_Migration.log";
+                    string uploadedURL = uploadLogFile(ctxDestination, fileName, logContent);
+                    return uploadedURL;
                 }
             }
         }
 
-        private void MigratePageLists(IPage realpage, ClientContext ctxSource, ClientContext ctxDest)
+        private void MigratePageLists(IPage realpage, ClientContext ctxSource, ClientContext ctxDest, ref string logContent)
         {
             List<ICanvasSection> sections = realpage.Sections;
             foreach (ICanvasSection section in sections)
@@ -187,6 +194,7 @@ namespace BDTB_SPMigration.Controllers
                         ctxSource.Load(list);
                         ctxSource.ExecuteQuery();
                         lastStatus = "Migrating " + list.Title + " list data.";
+                        logContent += getLogContent(lastStatus);
                         // Create a new list on the destination site
                         ListCreationInformation createList = new ListCreationInformation();
                         createList.Description = list.Description;
@@ -218,6 +226,7 @@ namespace BDTB_SPMigration.Controllers
                                 Field newField = newList.Fields.AddFieldAsXml(column.SchemaXmlWithResourceTokens, true, AddFieldOptions.AddFieldInternalNameHint);
                                 ctxDest.Load(newField);
                                 ctxDest.ExecuteQuery();
+                                logContent += getLogContent("List column '" + fieldInfo.DisplayName + "' created.");
                             }
                         }
 
@@ -234,15 +243,11 @@ namespace BDTB_SPMigration.Controllers
                             ListItemCreationInformation createItem = new ListItemCreationInformation();
                             createItem.UnderlyingObjectType = item.FileSystemObjectType;
                             ListItem newItem = newList.AddItem(createItem);
-
+                            logContent += getLogContent("List item with Id '" + item.Id + "' added.");
                             // Copy the field values from the source item to the new item
                             foreach (var field in item.FieldValues)
                             {
-                                if (columnList.Contains(field.Key) && field.Value != null)
-                                {
-                                    //Console.WriteLine("KEY: " + field.Key + " VALUE: " + field.Value);
-                                    newItem[field.Key] = field.Value;
-                                }
+                                if (columnList.Contains(field.Key) && field.Value != null) newItem[field.Key] = field.Value;
                             }
 
                             newItem.Update();
@@ -264,6 +269,73 @@ namespace BDTB_SPMigration.Controllers
         public string getStatus()
         {
             return lastStatus;
+        }
+
+        private string getCurrentDateTimeString()
+        {
+            DateTime currentDateTime = DateTime.Now;
+            string currentDateTimeString = currentDateTime.ToString("yyyy-MM-dd HH:mm:ss");
+            return currentDateTimeString;
+        }
+
+        private string getCurrentDateTimeForFileString()
+        {
+            DateTime currentDateTime = DateTime.Now;
+            string currentDateTimeString = currentDateTime.ToString("yyyy_MM_dd_HH-mm-ss");
+            return currentDateTimeString;
+        }
+
+        private string getLogContent(string content)
+        {
+            return "[" + getCurrentDateTimeString() + "] " + content + "\n";
+        }
+
+        private string uploadLogFile(ClientContext ctx, string fileName,string fileContent)
+        {
+            string libraryName = "Logs";
+            List logsLibrary = null;
+            try
+            {
+                logsLibrary = ctx.Web.Lists.GetByTitle(libraryName);
+                ctx.Load(logsLibrary);
+                ctx.ExecuteQuery();
+            }
+            catch (ServerException ex)
+            {
+                if (ex.Message.Contains("List '" + libraryName + "' does not exist at site with URL"))
+                {
+                    // Create Logs library if it doest exist
+                    ListCreationInformation listInfo = new ListCreationInformation();
+                    listInfo.Title = libraryName;
+                    listInfo.TemplateType = (int)Microsoft.SharePoint.Client.ListTemplateType.DocumentLibrary;
+
+                    logsLibrary = ctx.Web.Lists.Add(listInfo);
+                    ctx.ExecuteQuery();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            ctx.Load(logsLibrary.RootFolder);
+            ctx.ExecuteQuery();
+
+            // Create a new file
+            FileCreationInformation fileInfo = new FileCreationInformation();
+            fileInfo.Content = Encoding.UTF8.GetBytes(fileContent);
+            fileInfo.Url = Path.Combine(logsLibrary.RootFolder.ServerRelativeUrl, fileName);
+            fileInfo.Overwrite = true;
+
+            // Upload the file to SharePoint
+            File uploadedFile = logsLibrary.RootFolder.Files.Add(fileInfo);
+            ctx.Load(uploadedFile);
+            ctx.ExecuteQuery();
+
+            ctx.Load(ctx.Site);
+            ctx.ExecuteQuery();
+
+            return ctx.Site.Url + "/" + libraryName + "/" + fileName;
         }
     }
 }

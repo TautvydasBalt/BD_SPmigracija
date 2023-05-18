@@ -47,6 +47,7 @@ class MigrationRequestsHistoryPage extends React.Component<{},{ migrations: any 
           <div className={styles.status}>{"Status: " + showData(item.status)} </div>
           <div className={styles.buttons}>
             <PrimaryButton className={styles.button} text={strings.Delete} onClick={() => this.deleteMigrationHistory(item.id)} />
+            <PrimaryButton disabled={item.logURL === ""} className={styles.button} text={strings.downLogs} onClick={() => window.open(item.logURL)} />
           </div>
         </div>
       </div>
@@ -60,6 +61,7 @@ class MigrationRequestsHistoryPage extends React.Component<{},{ migrations: any 
 
   private async getMigrationHistory() {
     const response = await axios.get(`/migrationHistory`);
+    console.log(response.data);
     this.setState({ migrations: response.data })
   }
 }

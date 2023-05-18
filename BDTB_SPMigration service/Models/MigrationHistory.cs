@@ -10,6 +10,7 @@ namespace BDTB_SPMigration.Models
         public string DestinationURL { get; set; }
         public DateTime migrationDate { get; set; }
         public string Status { get; set; }
+        public string LogURL { get; set; }
 
     }
 }

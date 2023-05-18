@@ -17,7 +17,7 @@ namespace BDTB_SPMigration.Controllers
             try
             {
                 connection.Open();
-                string query = "INSERT INTO migration_history (title, source_url, destination_url, migration_date, status) VALUES (@request_name, @source_url, @destination_url, @migration_date, @status)";
+                string query = "INSERT INTO migration_history (title, source_url, destination_url, migration_date, status, log_url) VALUES (@request_name, @source_url, @destination_url, @migration_date, @status, @log_url)";
 
                 MySqlCommand command = new MySqlCommand(query, connection);
                 command.Parameters.AddWithValue("@request_name", requestjson.Title);
@@ -25,6 +25,7 @@ namespace BDTB_SPMigration.Controllers
                 command.Parameters.AddWithValue("@destination_url", requestjson.DestinationURL);
                 command.Parameters.AddWithValue("@migration_date", requestjson.migrationDate);
                 command.Parameters.AddWithValue("@status", requestjson.Status);
+                command.Parameters.AddWithValue("@log_url", requestjson.LogURL);
 
                 int rowsAffected = command.ExecuteNonQuery();
 
@@ -45,7 +46,7 @@ namespace BDTB_SPMigration.Controllers
             using MySqlConnection connection = new MySqlConnection(connectionString);
             connection.Open();
 
-            string query = "SELECT ID, title, source_url, destination_url, status, migration_date FROM migration_history";
+            string query = "SELECT ID, title, source_url, destination_url, status, migration_date, log_url FROM migration_history";
             using MySqlCommand command = new MySqlCommand(query, connection);
             using MySqlDataReader reader = command.ExecuteReader();
             while (reader.Read())
@@ -57,7 +58,8 @@ namespace BDTB_SPMigration.Controllers
                     SourceURL = reader.GetString(2),
                     DestinationURL = reader.GetString(3),
                     Status = reader.GetString(4),
-                    migrationDate = reader.GetDateTime(5)
+                    migrationDate = reader.GetDateTime(5),
+                    LogURL = reader.GetString(6),
                 });
             }
             return requests;

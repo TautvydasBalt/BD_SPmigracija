@@ -95,7 +95,7 @@ class MigrationPage extends React.Component<{}, MigrationState> {
                     {this.state.migrating ? <ProgressIndicator label="Migration is in progress." description={this.state.migrationStatusMessage} /> : ""}
                     <Modal className={styles.modal} isOpen={this.state.modalMessage ? true : false}>
                         <div className={styles.itemData} >{this.state.modalMessage}</div>
-                        <PrimaryButton className={styles.button} text={strings.Ok} onClick={() => { window.open(window.location.origin + "/migrationRequests", "_self"); }} />
+                        <PrimaryButton className={styles.button} text={strings.Ok} onClick={() => { window.open(window.location.origin + "/migrationRequestsHistory", "_self"); }} />
                     </Modal>
 
                 </form>
@@ -175,13 +175,13 @@ class MigrationPage extends React.Component<{}, MigrationState> {
                 const data = response.data;
                 if (data) {
                     console.log(data);
-                    this.archiveMigration("Completed");
+                    this.archiveMigration("Completed", response.data);
                     this.setState({ modalMessage: "Migration completed successfuly. " })
                     this.setState({ migrating: false });
                     clearInterval(interval);
                 }
             }).catch(() => {
-                this.archiveMigration("Error");
+                this.archiveMigration("Error", " ");
                 console.log("An Error Ocurred");
                 this.setState({ modalMessage: "An Error Ocurred during migration. " })
                 clearInterval(interval);
@@ -189,7 +189,7 @@ class MigrationPage extends React.Component<{}, MigrationState> {
         }
     }
 
-    private archiveMigration(status: string) {
+    private archiveMigration(status: string, logUrl?: string) {
         let dateTime = new Date();
         console.log(dateTime);
         try {
@@ -198,7 +198,8 @@ class MigrationPage extends React.Component<{}, MigrationState> {
                 sourceURL: this.state.MigrationSource,
                 destinationURL: this.state.MigrationDest,
                 migrationDate: dateTime,
-                status: status
+                status: status,
+                LogUrl: logUrl,
             };
             axios.post("/archiveMigration", bodyParameters);
         } catch (error) {
