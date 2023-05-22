@@ -175,8 +175,8 @@ class MigrationPage extends React.Component<{}, MigrationState> {
                 const data = response.data;
                 if (data) {
                     console.log(data);
-                    this.archiveMigration("Completed", response.data);
-                    this.setState({ modalMessage: "Migration completed successfuly. " })
+                    this.archiveMigration(data.status, data.logURL);
+                    this.setState({ modalMessage: data.status === "Completed" ? "Migration completed successfuly. " : "An Error Ocurred during migration. "})
                     this.setState({ migrating: false });
                     clearInterval(interval);
                 }
@@ -191,7 +191,6 @@ class MigrationPage extends React.Component<{}, MigrationState> {
 
     private archiveMigration(status: string, logUrl?: string) {
         let dateTime = new Date();
-        console.log(dateTime);
         try {
             let bodyParameters = {
                 title: this.state.RequestName,

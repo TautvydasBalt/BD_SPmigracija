@@ -1,12 +1,15 @@
 $main-bg: #FFFFFF;
 $brown: #5C2A2A;
+$border-brown: #522727;
 $deep-brown: darken($brown, 10%);
 $active-brown: #A76F6F;
 
 .globalButton{
     background-color: $brown;
+    border-color: $border-brown;
     &:hover {
         background-color: $active-brown;
+        border-color: $brown;
     }
     &:disabled,
     &[disabled] {

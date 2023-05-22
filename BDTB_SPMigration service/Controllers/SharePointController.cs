@@ -112,65 +112,84 @@ namespace BDTB_SPMigration.Controllers
         }
 
         [HttpPost("MigratePages")]
-        public string MigratePages([FromBody] Migration migration)
+        public MigrationResult MigratePages([FromBody] Migration migration)
         {
             string logContent = "START\n";
             using (ClientContext ctxSource = getClientContext(migration.SourceUsername, migration.SourcePassword, migration.SourceURL))
             {
                 using (ClientContext ctxDestination = getClientContext(migration.DestinationUsername, migration.DestinationPassword, migration.DestinationURL))
                 {
-                    ctxSource.Load(ctxSource.Web);
-
-                    List<string> pageNames = new List<string>();
-                    foreach (SharepointPage spPage in migration.SharepointPages) pageNames.Add(spPage.Title);
-
-                    // Get the pages from the source site
-                    ListItemCollection pages = ctxSource.Web.GetPages();
-                    ctxSource.Load(pages, page => page.Include(i => i.DisplayName));
-                    ctxSource.ExecuteQuery();
-
-                    // Copy the pages to the destination site
-                    foreach (ListItem page in pages)
+                    try
                     {
-                        if (pageNames.Contains(page.DisplayName))
+
+                        ctxSource.Load(ctxSource.Web);
+
+                        List<string> pageNames = new List<string>();
+                        foreach (SharepointPage spPage in migration.SharepointPages) pageNames.Add(spPage.Title);
+
+                        // Get the pages from the source site
+                        ListItemCollection pages = ctxSource.Web.GetPages();
+                        ctxSource.Load(pages, page => page.Include(i => i.DisplayName));
+                        ctxSource.ExecuteQuery();
+
+                        // Copy the pages to the destination site
+                        foreach (ListItem page in pages)
                         {
-                            lastStatus = "Migrating " + page.DisplayName + " page.";
-                            logContent += getLogContent(lastStatus);
-
-                            File pageFile = page.File;
-                            ctxSource.Load(pageFile);
-                            ctxSource.ExecuteQuery();
-
-                            IPage realpage = ctxSource.Web.LoadClientSidePage(page.DisplayName);
-                            ctxSource.ExecuteQuery();
-                            MigratePageLists(realpage, ctxSource, ctxDestination,ref logContent);
-
-                            string pageName = pageFile.Name;
-                            ClientResult<Stream> stream = pageFile.OpenBinaryStream();
-                            ctxSource.ExecuteQuery();
-
-                            byte[] fileContent;
-                            using (var memoryStream = new MemoryStream())
+                            if (pageNames.Contains(page.DisplayName))
                             {
-                                stream.Value.CopyTo(memoryStream);
-                                fileContent = memoryStream.ToArray();
+                                lastStatus = "Migrating " + page.DisplayName + " page.";
+                                logContent += getLogContent(lastStatus);
+
+                                File pageFile = page.File;
+                                ctxSource.Load(pageFile);
+                                ctxSource.ExecuteQuery();
+
+                                IPage realpage = ctxSource.Web.LoadClientSidePage(page.DisplayName);
+                                ctxSource.ExecuteQuery();
+                                MigratePageLists(realpage, ctxSource, ctxDestination, ref logContent);
+
+                                string pageName = pageFile.Name;
+                                ClientResult<Stream> stream = pageFile.OpenBinaryStream();
+                                ctxSource.ExecuteQuery();
+
+                                byte[] fileContent;
+                                using (var memoryStream = new MemoryStream())
+                                {
+                                    stream.Value.CopyTo(memoryStream);
+                                    fileContent = memoryStream.ToArray();
+                                }
+
+                                FileCreationInformation createPage = new FileCreationInformation();
+                                createPage.Content = fileContent;
+                                createPage.Url = pageName;
+                                createPage.Overwrite = true;
+
+                                Folder pagesLibrary = ctxDestination.Web.Lists.GetByTitle("Site Pages").RootFolder;
+                                File newPageFile = pagesLibrary.Files.Add(createPage);
+                                ctxDestination.Load(newPageFile);
+                                ctxDestination.ExecuteQuery();
                             }
-
-                            FileCreationInformation createPage = new FileCreationInformation();
-                            createPage.Content = fileContent;
-                            createPage.Url = pageName;
-                            createPage.Overwrite = true;
-
-                            Folder pagesLibrary = ctxDestination.Web.Lists.GetByTitle("Site Pages").RootFolder;
-                            File newPageFile = pagesLibrary.Files.Add(createPage);
-                            ctxDestination.Load(newPageFile);
-                            ctxDestination.ExecuteQuery();
                         }
+                        logContent += "END\n";
+                        string fileName = getCurrentDateTimeForFileString() + "_Migration.log";
+                        string uploadedURL = uploadLogFile(ctxDestination, fileName, logContent);
+                        return new MigrationResult
+                        {
+                            logURL = uploadedURL,
+                            status = "Completed"
+                        };
                     }
-                    logContent += "END\n";
-                    string fileName = getCurrentDateTimeForFileString() + "_Migration.log";
-                    string uploadedURL = uploadLogFile(ctxDestination, fileName, logContent);
-                    return uploadedURL;
+                    catch (Exception ex)
+                    {
+                        logContent += getLogContent("ERROR " + ex.Message);
+                        logContent += "END\n";
+                        string fileName = getCurrentDateTimeForFileString() + "_Migration.log";
+                        string uploadedURL = uploadLogFile(ctxDestination, fileName, logContent);
+                        return new MigrationResult {
+                            logURL = uploadedURL,
+                            status = "Error"
+                        };
+                    }
                 }
             }
         }

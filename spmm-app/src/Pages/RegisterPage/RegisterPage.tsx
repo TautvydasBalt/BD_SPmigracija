@@ -31,7 +31,7 @@ class RegisterPage extends React.Component<{}, {}> {
         />
         <TextField className={styles.textField} onChange={this.handleTextFieldChangeEmail} label={strings.Email} />
         <div className={styles.buttons}>
-          <PrimaryButton text={strings.Register} onClick={this.registerUser.bind(this)} />
+          <PrimaryButton className={styles.button} text={strings.Register} onClick={this.registerUser.bind(this)} />
         </div>
       </form>
     );

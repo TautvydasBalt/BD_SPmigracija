@@ -61,7 +61,6 @@ class MigrationRequestsHistoryPage extends React.Component<{},{ migrations: any 
 
   private async getMigrationHistory() {
     const response = await axios.get(`/migrationHistory`);
-    console.log(response.data);
     this.setState({ migrations: response.data })
   }
 }

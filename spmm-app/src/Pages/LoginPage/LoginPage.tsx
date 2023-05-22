@@ -25,7 +25,7 @@ class LoginPage extends React.Component<{}, {}> {
         />
         <div className={styles.buttons}>
           <DefaultButton text={strings.Register} href={window.location.origin + "/register"} />
-          <PrimaryButton text={strings.Login} onClick={this.loginClick.bind(this)} />
+          <PrimaryButton className={styles.button} text={strings.Login} onClick={this.loginClick.bind(this)} />
         </div>
       </form>
     );
