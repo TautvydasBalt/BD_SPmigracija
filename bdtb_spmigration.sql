@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 16, 2023 at 10:20 PM
+-- Generation Time: May 22, 2023 at 10:38 PM
 -- Server version: 10.4.27-MariaDB
 -- PHP Version: 8.2.0
 
@@ -56,7 +56,8 @@ CREATE TABLE `migration_history` (
   `source_url` varchar(255) NOT NULL,
   `destination_url` varchar(255) NOT NULL,
   `migration_date` datetime NOT NULL,
-  `status` enum('Completed','Error') NOT NULL
+  `status` enum('Completed','Error') NOT NULL,
+  `log_url` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
